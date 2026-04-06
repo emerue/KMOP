@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}About Us | KingMac of Property{% endblock %}
+{% block title %}About Us | {{ brand.name }}{% endblock %}
 {% block body_class %}page-about{% endblock %}
 
 {% block content %}
@@ -19,11 +19,11 @@
         <p class="section-tag">Who We Are</p>
         <h2 class="section-title">A Decade of Premium Real Estate</h2>
         <div class="about-story__divider"></div>
-        <p>KingMac of Property was founded on a simple belief — that every Nigerian deserves access to exceptional real estate. With over a decade of experience spanning Lagos, Abuja, Port Harcourt and beyond, we have built a reputation for integrity, expertise, and results that speak for themselves.</p>
+        <p>{{ brand.about_body }}</p>
         <p>From luxury penthouses in Ikoyi to prime commercial developments in Victoria Island, our portfolio reflects the full breadth of Nigeria's thriving property market. We serve discerning buyers, astute investors, and the Nigerian diaspora who trust us to manage their most important investments.</p>
       </div>
       <div class="about-story__image animate-on-scroll" data-delay="0.2">
-        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85" alt="KingMac Office" loading="lazy">
+        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85" alt="{{ brand.name }} Office" loading="lazy">
       </div>
     </div>
   </div>
@@ -34,19 +34,19 @@
   <div class="container">
     <div class="stats-bar__grid">
       <div class="stats-bar__item animate-on-scroll">
-        <span class="stats-bar__number">500<span>+</span></span>
+        <span class="stats-bar__number">{{ brand.properties_sold }}</span>
         <span class="stats-bar__label">Properties Listed</span>
       </div>
       <div class="stats-bar__item animate-on-scroll" data-delay="0.1">
-        <span class="stats-bar__number">12</span>
+        <span class="stats-bar__number">{{ brand.years_active }}</span>
         <span class="stats-bar__label">Years of Excellence</span>
       </div>
       <div class="stats-bar__item animate-on-scroll" data-delay="0.2">
-        <span class="stats-bar__number">20<span>+</span></span>
+        <span class="stats-bar__number">{{ brand.agents_count }}</span>
         <span class="stats-bar__label">Expert Agents</span>
       </div>
       <div class="stats-bar__item animate-on-scroll" data-delay="0.3">
-        <span class="stats-bar__number">98<span>%</span></span>
+        <span class="stats-bar__number">{{ brand.satisfaction }}</span>
         <span class="stats-bar__label">Client Satisfaction</span>
       </div>
     </div>
@@ -58,7 +58,7 @@
   <div class="container">
     <div class="section-header section-header--center">
       <p class="section-tag animate-on-scroll">Our Foundation</p>
-      <h2 class="section-title animate-on-scroll" data-delay="0.1">Mission, Vision & Values</h2>
+      <h2 class="section-title animate-on-scroll" data-delay="0.1">Mission, Vision &amp; Values</h2>
     </div>
     <div class="values-grid">
       <div class="value-card animate-on-scroll" data-delay="0">

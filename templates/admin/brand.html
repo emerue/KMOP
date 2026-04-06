@@ -1,0 +1,142 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Brand Settings{% endblock %}
+{% block page_title %}Brand Settings{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="margin-bottom:1.5rem">
+  <div style="padding:1rem 1.5rem;background:var(--color-gold);color:#000;border-radius:6px 6px 0 0">
+    <strong>Read-Only View</strong> — To change brand settings, edit <code>app/brand.py</code> and redeploy.
+  </div>
+</div>
+
+<!-- IDENTITY -->
+<div class="admin-card" style="margin-bottom:1.5rem">
+  <div class="admin-card__header"><h3>Identity</h3></div>
+  <div style="padding:1.5rem;display:grid;gap:1rem">
+    <div style="display:flex;align-items:center;gap:2rem">
+      <img src="{{ url_for('static', filename=brand.logo_file) }}" alt="{{ brand.name }}" style="height:60px;object-fit:contain;background:#0e0d0b;padding:8px 16px;border-radius:4px">
+      <div>
+        <p><strong>Logo file:</strong> static/{{ brand.logo_file }}</p>
+        <p><strong>Height:</strong> {{ brand.logo_height_px }}px</p>
+      </div>
+    </div>
+    <table class="admin-table" style="margin:0">
+      <tbody>
+        <tr><td><strong>Name</strong></td><td>{{ brand.name }}</td></tr>
+        <tr><td><strong>Short Name</strong></td><td>{{ brand.short_name }}</td></tr>
+        <tr><td><strong>Tagline</strong></td><td>{{ brand.tagline }}</td></tr>
+        <tr><td><strong>Founded</strong></td><td>{{ brand.founded_year }}</td></tr>
+        <tr><td><strong>Properties Sold</strong></td><td>{{ brand.properties_sold }}</td></tr>
+        <tr><td><strong>Years Active</strong></td><td>{{ brand.years_active }}</td></tr>
+        <tr><td><strong>Satisfaction</strong></td><td>{{ brand.satisfaction }}</td></tr>
+        <tr><td><strong>Agents Count</strong></td><td>{{ brand.agents_count }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<div class="admin-card" style="margin-bottom:1.5rem">
+  <div class="admin-card__header"><h3>Contact Details</h3></div>
+  <div style="padding:1.5rem">
+    <table class="admin-table" style="margin:0">
+      <tbody>
+        <tr><td><strong>Phone</strong></td><td>{{ brand.phone }}</td></tr>
+        <tr><td><strong>Email</strong></td><td>{{ brand.email }}</td></tr>
+        <tr><td><strong>Address</strong></td><td>{{ brand.address }}</td></tr>
+        <tr><td><strong>Office Hours</strong></td><td>{{ brand.office_hours }}</td></tr>
+        <tr><td><strong>WhatsApp Number</strong></td><td>{{ brand.whatsapp_number }}</td></tr>
+        <tr><td><strong>Map Lat/Lng</strong></td><td>{{ brand.map_lat }}, {{ brand.map_lng }}</td></tr>
+        <tr><td><strong>Site URL</strong></td><td><a href="{{ brand.site_url }}" target="_blank">{{ brand.site_url }}</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- COLORS -->
+<div class="admin-card" style="margin-bottom:1.5rem">
+  <div class="admin-card__header"><h3>Brand Colors</h3></div>
+  <div style="padding:1.5rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem">
+    {% set colors = [
+      ('color_gold', brand.color_gold),
+      ('color_gold_light', brand.color_gold_light),
+      ('color_gold_pale', brand.color_gold_pale),
+      ('color_black', brand.color_black),
+      ('color_dark', brand.color_dark),
+      ('color_dark_2', brand.color_dark_2),
+      ('color_dark_3', brand.color_dark_3),
+      ('color_text_primary', brand.color_text_primary),
+      ('color_text_secondary', brand.color_text_secondary),
+      ('color_text_muted', brand.color_text_muted),
+      ('color_text_light', brand.color_text_light),
+      ('color_bg_light', brand.color_bg_light),
+      ('color_bg_cream', brand.color_bg_cream),
+    ] %}
+    {% for key, val in colors %}
+    <div style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem;background:#f7f4ee;border-radius:4px">
+      <div style="width:36px;height:36px;border-radius:4px;background:{{ val }};border:1px solid rgba(0,0,0,.1);flex-shrink:0"></div>
+      <div>
+        <p style="font-size:0.75rem;color:#666;margin:0">{{ key }}</p>
+        <p style="font-size:0.85rem;font-family:monospace;margin:0">{{ val }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- TYPOGRAPHY -->
+<div class="admin-card" style="margin-bottom:1.5rem">
+  <div class="admin-card__header"><h3>Typography</h3></div>
+  <div style="padding:1.5rem;display:grid;gap:1rem">
+    <div style="padding:1rem;background:#f7f4ee;border-radius:4px">
+      <p style="font-size:0.75rem;color:#888">Display Font (Headings)</p>
+      <p style="font-family:'{{ brand.font_display }}',serif;font-size:1.5rem">{{ brand.font_display }}</p>
+    </div>
+    <div style="padding:1rem;background:#f7f4ee;border-radius:4px">
+      <p style="font-size:0.75rem;color:#888">Body Font</p>
+      <p style="font-family:'{{ brand.font_body }}',sans-serif;font-size:1rem">{{ brand.font_body }}</p>
+    </div>
+    <div style="padding:1rem;background:#f7f4ee;border-radius:4px">
+      <p style="font-size:0.75rem;color:#888">Mono Font</p>
+      <p style="font-family:'{{ brand.font_mono }}',monospace;font-size:0.9rem">{{ brand.font_mono }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- SOCIAL LINKS -->
+<div class="admin-card" style="margin-bottom:1.5rem">
+  <div class="admin-card__header"><h3>Social Media</h3></div>
+  <div style="padding:1.5rem">
+    <table class="admin-table" style="margin:0">
+      <tbody>
+        <tr><td><i class="fa-brands fa-instagram"></i> Instagram</td><td><a href="{{ brand.social_instagram }}" target="_blank">{{ brand.social_instagram }}</a></td></tr>
+        <tr><td><i class="fa-brands fa-facebook-f"></i> Facebook</td><td><a href="{{ brand.social_facebook }}" target="_blank">{{ brand.social_facebook }}</a></td></tr>
+        <tr><td><i class="fa-brands fa-x-twitter"></i> Twitter/X</td><td><a href="{{ brand.social_twitter }}" target="_blank">{{ brand.social_twitter }}</a></td></tr>
+        <tr><td><i class="fa-brands fa-linkedin-in"></i> LinkedIn</td><td><a href="{{ brand.social_linkedin }}" target="_blank">{{ brand.social_linkedin }}</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- FLYER FONTS -->
+<div class="admin-card" style="margin-bottom:1.5rem">
+  <div class="admin-card__header"><h3>Flyer Generator Fonts</h3></div>
+  <div style="padding:1.5rem">
+    <table class="admin-table" style="margin:0">
+      <tbody>
+        <tr><td><strong>Heading font</strong></td><td><code>app/static/{{ brand.flyer_font_heading }}</code></td></tr>
+        <tr><td><strong>Body font</strong></td><td><code>app/static/{{ brand.flyer_font_body }}</code></td></tr>
+        <tr><td><strong>Small font</strong></td><td><code>app/static/{{ brand.flyer_font_small }}</code></td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:1rem;font-size:0.85rem;color:#888">
+      These TTF files must exist at the paths above for the flyer generator to work.
+      Download from <a href="https://fonts.google.com" target="_blank">fonts.google.com</a>.
+    </p>
+  </div>
+</div>
+
+<p style="text-align:center;color:#888;font-size:0.85rem;margin-top:2rem">
+  To update brand settings, edit <code>app/brand.py</code> and redeploy.
+</p>
+{% endblock %}

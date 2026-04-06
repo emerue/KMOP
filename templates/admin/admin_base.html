@@ -39,6 +39,9 @@
       <a href="{{ url_for('admin.rates') }}" class="admin-nav-item {% if request.endpoint == 'admin.rates' %}active{% endif %}">
         <i class="fa-solid fa-arrow-right-arrow-left"></i> <span>Exchange Rates</span>
       </a>
+      <a href="{{ url_for('admin.brand_settings') }}" class="admin-nav-item {% if request.endpoint == 'admin.brand_settings' %}active{% endif %}">
+        <i class="fa-solid fa-palette"></i> <span>Brand Settings</span>
+      </a>
       <div class="admin-sidebar__divider"></div>
       <a href="{{ url_for('main.index') }}" class="admin-nav-item" target="_blank">
         <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>View Site</span>

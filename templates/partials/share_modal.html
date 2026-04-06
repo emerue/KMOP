@@ -1,0 +1,32 @@
+<!-- WhatsApp Share Modal — included in base.html, available on all pages -->
+<div class="share-modal" id="share-modal" role="dialog" aria-modal="true" aria-label="Share Property">
+  <div class="share-modal__card">
+    <div class="share-modal__header">
+      <h3 class="share-modal__title">Share Property</h3>
+      <button class="share-modal__close" onclick="closeShareModal()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="share-modal__body">
+      <p class="share-modal__hint">Edit the message if needed, then copy or send directly.</p>
+      <textarea
+        id="share-message"
+        class="share-modal__textarea"
+        rows="10"
+        spellcheck="false"
+      ></textarea>
+    </div>
+
+    <div class="share-modal__actions">
+      <button class="btn btn--gold btn--full" id="share-copy-btn">
+        <i class="fa-solid fa-copy"></i> Copy Message
+      </button>
+      <button class="btn btn--whatsapp btn--full" id="share-whatsapp-btn">
+        <i class="fa-brands fa-whatsapp"></i> Open in WhatsApp
+      </button>
+    </div>
+
+    <p class="share-modal__footer-note">Message opens in WhatsApp. You choose the recipient.</p>
+  </div>
+</div>

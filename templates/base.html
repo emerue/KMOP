@@ -3,37 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}KingMac of Property — Your Crown. Your Property.{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}KingMac of Property — Nigeria's premium real estate firm. Find luxury properties for sale and rent across Lagos, Abuja, Port Harcourt and beyond.{% endblock %}">
-  <meta property="og:title" content="{% block og_title %}KingMac of Property{% endblock %}">
+  <title>{% block title %}{{ brand.name }} — {{ brand.tagline }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ brand.name }} — Nigeria's premium real estate firm. Find luxury properties for sale and rent across Lagos, Abuja, Port Harcourt and beyond.{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}{{ brand.name }}{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Premium real estate across Nigeria's finest addresses.{% endblock %}">
   <meta property="og:image" content="{% block og_image %}https://images.unsplash.com/photo-1613977257363-707ba9348227?w=1200&q=85{% endblock %}">
   <meta property="og:type" content="website">
-  <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+  <link rel="icon" href="{{ url_for('static', filename=brand.favicon_file) }}" type="image/x-icon">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+  <link href="{{ brand.google_fonts_url }}" rel="stylesheet">
 
   <!-- CDN Styles -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/splidejs/4.1.4/css/splide.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 
+  <!-- Brand Colors — dynamically injected from brand.py -->
+  <style>
+    :root {
+      --color-gold:           {{ brand.color_gold }};
+      --color-gold-light:     {{ brand.color_gold_light }};
+      --color-gold-pale:      {{ brand.color_gold_pale }};
+      --color-black:          {{ brand.color_black }};
+      --color-dark:           {{ brand.color_dark }};
+      --color-dark-2:         {{ brand.color_dark_2 }};
+      --color-dark-3:         {{ brand.color_dark_3 }};
+      --color-text-primary:   {{ brand.color_text_primary }};
+      --color-text-secondary: {{ brand.color_text_secondary }};
+      --color-text-muted:     {{ brand.color_text_muted }};
+      --color-text-light:     {{ brand.color_text_light }};
+      --color-bg-light:       {{ brand.color_bg_light }};
+      --color-bg-cream:       {{ brand.color_bg_cream }};
+      --font-display:         '{{ brand.font_display }}', Georgia, serif;
+      --font-body:            '{{ brand.font_body }}', system-ui, sans-serif;
+      --font-mono:            '{{ brand.font_mono }}', monospace;
+    }
+  </style>
+
   <!-- Custom CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
   {% block extra_head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}" x-data="{ mobileMenuOpen: false }">
+<body class="{% block body_class %}{% endblock %}"
+      x-data="{ mobileMenuOpen: false }"
+      data-site-url="{{ brand.site_url }}"
+      data-brand-phone="{{ brand.phone }}">
 
   <!-- NAVBAR -->
   <nav class="navbar" id="navbar" x-data="{ mobileOpen: false }">
     <div class="navbar__inner">
       <a href="{{ url_for('main.index') }}" class="navbar__logo">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KingMac of Property"
-           width="160" height="52" style="width:160px;height:52px;object-fit:contain;">
+        <img src="{{ url_for('static', filename=brand.logo_file) }}" alt="{{ brand.name }}"
+           height="{{ brand.logo_height_px }}" style="height:{{ brand.logo_height_px }}px;width:auto;object-fit:contain;">
       </a>
 
       <ul class="navbar__links">
@@ -127,16 +152,16 @@
         <div class="footer__grid">
           <div class="footer__col footer__col--brand">
             <a href="{{ url_for('main.index') }}">
-              <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KingMac"
-                   width="160" height="48" style="width:160px;height:48px;object-fit:contain;">
+              <img src="{{ url_for('static', filename=brand.logo_file) }}" alt="{{ brand.name }}"
+                   height="{{ brand.logo_height_px }}" style="height:{{ brand.logo_height_px }}px;width:auto;object-fit:contain;">
             </a>
-            <p class="footer__tagline">Your Crown. Your Property.</p>
+            <p class="footer__tagline">{{ brand.tagline }}</p>
             <p class="footer__desc">Nigeria's premier real estate firm connecting discerning buyers with exceptional properties across Lagos, Abuja, Port Harcourt and beyond.</p>
             <div class="footer__social">
-              <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-              <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-              <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
-              <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="{{ brand.social_facebook }}" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="{{ brand.social_instagram }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+              <a href="{{ brand.social_twitter }}" target="_blank" rel="noopener" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+              <a href="{{ brand.social_linkedin }}" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
             </div>
           </div>
 
@@ -167,10 +192,10 @@
           <div class="footer__col">
             <h4 class="footer__col-title">Contact Us</h4>
             <ul class="footer__contact">
-              <li><i class="fa-solid fa-location-dot"></i> 14 Marina Road, Victoria Island, Lagos, Nigeria</li>
-              <li><i class="fa-solid fa-phone"></i> <a href="tel:+2348000000000">+234 800 000 0000</a></li>
-              <li><i class="fa-solid fa-envelope"></i> <a href="mailto:info@kingmacproperty.com">info@kingmacproperty.com</a></li>
-              <li><i class="fa-solid fa-clock"></i> Mon–Fri: 8am – 6pm</li>
+              <li><i class="fa-solid fa-location-dot"></i> {{ brand.address }}</li>
+              <li><i class="fa-solid fa-phone"></i> <a href="tel:{{ brand.phone }}">{{ brand.phone }}</a></li>
+              <li><i class="fa-solid fa-envelope"></i> <a href="mailto:{{ brand.email }}">{{ brand.email }}</a></li>
+              <li><i class="fa-solid fa-clock"></i> {{ brand.office_hours }}</li>
             </ul>
           </div>
         </div>
@@ -179,14 +204,14 @@
 
     <div class="footer__bottom">
       <div class="container">
-        <p>&copy; {{ now.year if now else '2026' }} KingMac of Property. All rights reserved.</p>
+        <p>&copy; {{ now.year if now else '2026' }} {{ brand.name }}. All rights reserved.</p>
         <p>Built with precision &amp; purpose.</p>
       </div>
     </div>
   </footer>
 
   <!-- WHATSAPP BUBBLE -->
-  <a href="https://wa.me/2348000000000?text=Hello%2C%20I%20found%20KingMac%27s%20website%20and%20would%20like%20to%20enquire%20about%20a%20property."
+  <a href="https://wa.me/{{ brand.whatsapp_number }}?text={{ brand.whatsapp_greeting | urlencode }}"
      class="whatsapp-bubble" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
     <i class="fa-brands fa-whatsapp"></i>
     <span class="whatsapp-bubble__tooltip">Chat with us</span>
@@ -201,6 +226,9 @@
 
   <!-- Custom JS -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  <!-- WhatsApp Share Modal (available on all pages) -->
+  {% include 'partials/share_modal.html' %}
 
   {% block extra_scripts %}{% endblock %}
 </body>

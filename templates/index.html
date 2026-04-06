@@ -10,13 +10,10 @@
   <div class="hero__content container">
     <p class="hero__eyebrow animate-hero">— Premium Real Estate · Nigeria</p>
     <h1 class="hero__title animate-hero">
-      Find Your Dream<br>
-      <em class="hero__title--gold">Property</em> In Nigeria
+      {{ brand.hero_headline_line1 }}<br>
+      <em class="hero__title--gold">{{ brand.hero_headline_line2 }}</em>
     </h1>
-    <p class="hero__sub animate-hero">
-      KingMac of Property connects discerning buyers with exceptional homes
-      and investment opportunities across Nigeria's finest addresses.
-    </p>
+    <p class="hero__sub animate-hero">{{ brand.hero_subtext }}</p>
     <div class="hero__ctas animate-hero">
       <a href="{{ url_for('main.listings') }}" class="btn btn--gold btn--lg">Browse Properties</a>
       <a href="{{ url_for('main.valuation') }}" class="btn btn--outline-white btn--lg">Get a Free Valuation →</a>
@@ -28,17 +25,17 @@
     <div class="container">
       <div class="hero__stats-grid">
         <div class="hero__stat">
-          <span class="hero__stat-number">500<span class="hero__stat-plus">+</span></span>
+          <span class="hero__stat-number">{{ brand.properties_sold }}</span>
           <span class="hero__stat-label">Properties Listed</span>
         </div>
         <div class="hero__stat-divider"></div>
         <div class="hero__stat">
-          <span class="hero__stat-number">12</span>
+          <span class="hero__stat-number">{{ brand.years_active }}</span>
           <span class="hero__stat-label">Years of Excellence</span>
         </div>
         <div class="hero__stat-divider"></div>
         <div class="hero__stat">
-          <span class="hero__stat-number">98<span class="hero__stat-plus">%</span></span>
+          <span class="hero__stat-number">{{ brand.satisfaction }}</span>
           <span class="hero__stat-label">Client Satisfaction</span>
         </div>
       </div>
@@ -149,12 +146,12 @@
   </div>
 </section>
 
-<!-- WHY CHOOSE KINGMAC -->
+<!-- WHY CHOOSE US -->
 <section class="section section--dark why-section">
   <div class="container">
     <div class="section-header section-header--center">
-      <p class="section-tag animate-on-scroll">Why KingMac</p>
-      <h2 class="section-title section-title--light animate-on-scroll" data-delay="0.1">The KingMac Difference</h2>
+      <p class="section-tag animate-on-scroll">Why {{ brand.short_name }}</p>
+      <h2 class="section-title section-title--light animate-on-scroll" data-delay="0.1">The {{ brand.short_name }} Difference</h2>
     </div>
     <div class="why-grid">
       <div class="why-card animate-on-scroll" data-delay="0">
@@ -181,7 +178,7 @@
   <div class="valuation-teaser__left animate-on-scroll">
     <p class="section-tag">Free Tool</p>
     <h2 class="section-title section-title--light">What Is Your<br>Property Worth?</h2>
-    <p class="valuation-teaser__body">Get an instant price estimate based on real KingMac listings in your area. No forms. No agents. Just data.</p>
+    <p class="valuation-teaser__body">Get an instant price estimate based on real {{ brand.short_name }} listings in your area. No forms. No agents. Just data.</p>
     <a href="{{ url_for('main.valuation') }}" class="btn btn--outline-white btn--lg">Try the Valuation Tool →</a>
   </div>
   <div class="valuation-teaser__right">
@@ -212,17 +209,17 @@
       <div class="testimonials-right">
         <div class="testimonial-card animate-on-scroll" data-delay="0.1">
           <div class="testimonial-card__stars">★★★★★</div>
-          <p class="testimonial-card__text">"KingMac helped me find my first home in Lekki within two weeks. The process was seamless and professional from start to finish."</p>
+          <p class="testimonial-card__text">"{{ brand.short_name }} helped me find my first home in Lekki within two weeks. The process was seamless and professional from start to finish."</p>
           <p class="testimonial-card__author">— Adaeze Nwosu, <span>Lekki, Lagos</span></p>
         </div>
         <div class="testimonial-card animate-on-scroll" data-delay="0.2">
           <div class="testimonial-card__stars">★★★★★</div>
-          <p class="testimonial-card__text">"I've worked with many property firms across Nigeria. None match KingMac's attention to detail and market knowledge."</p>
+          <p class="testimonial-card__text">"I've worked with many property firms across Nigeria. None match {{ brand.short_name }}'s attention to detail and market knowledge."</p>
           <p class="testimonial-card__author">— Tunde Okafor, <span>Property Investor, Abuja</span></p>
         </div>
         <div class="testimonial-card animate-on-scroll" data-delay="0.3">
           <div class="testimonial-card__stars">★★★★★</div>
-          <p class="testimonial-card__text">"As a member of the diaspora, I trusted KingMac to handle my Abuja investment remotely. They delivered beyond expectations."</p>
+          <p class="testimonial-card__text">"As a member of the diaspora, I trusted {{ brand.short_name }} to handle my Abuja investment remotely. They delivered beyond expectations."</p>
           <p class="testimonial-card__author">— Chisom Eze, <span>UK-based investor</span></p>
         </div>
       </div>

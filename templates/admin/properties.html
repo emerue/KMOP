@@ -70,6 +70,31 @@
             <a href="{{ url_for('admin.property_media', property_id=prop.id) }}" class="admin-action-btn" title="Manage Images">
               <i class="fa-solid fa-images"></i>
             </a>
+            <button class="admin-action-btn admin-action-btn--flyer" title="Generate Flyer"
+                    data-action="open-flyer"
+                    data-property-id="{{ prop.id }}"
+                    data-property-title="{{ prop.title }}"
+                    data-property-type="{{ prop.listing_type }}"
+                    data-image-count="{{ prop.images | length }}">
+              <i class="fa-solid fa-file-image"></i>
+            </button>
+            <button class="admin-action-btn admin-action-btn--share" title="Share via WhatsApp"
+                    data-action="open-share"
+                    data-property-id="{{ prop.id }}"
+                    data-property-title="{{ prop.title }}"
+                    data-property-ref="{{ prop.ref_code }}"
+                    data-property-price="{{ prop.price | naira }}"
+                    data-property-beds="{{ prop.bedrooms }}"
+                    data-property-baths="{{ prop.bathrooms }}"
+                    data-property-sqm="{{ prop.area_sqm }}"
+                    data-property-city="{{ prop.city }}"
+                    data-property-state="{{ prop.state }}"
+                    data-property-type="{{ prop.listing_type }}"
+                    data-property-period="{{ prop.price_period or '' }}"
+                    data-property-slug="{{ prop.slug }}"
+                    data-amenities="{{ prop.amenities | map(attribute='name') | join(' | ') | truncate(60) }}">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
             <button class="admin-action-btn admin-action-btn--danger" title="Delete"
                     onclick="confirmDelete('{{ url_for('admin.property_delete', property_id=prop.id) }}', '{{ prop.title }}')">
               <i class="fa-solid fa-trash"></i>
@@ -81,6 +106,38 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Flyer Generator Modal -->
+<div class="admin-modal" id="flyerModal">
+  <div class="admin-modal__card flyer-modal__card">
+    <h3>Generate Property Flyer</h3>
+    <p id="flyerModalTitle" class="flyer-modal__prop-name"></p>
+
+    <div class="form-group" style="margin-top:1rem">
+      <label>Listing Type</label>
+      <div class="flyer-modal__radio-group">
+        <label class="flyer-modal__radio"><input type="radio" name="flyerType" value="sale"> For Sale</label>
+        <label class="flyer-modal__radio"><input type="radio" name="flyerType" value="rent"> For Rent</label>
+        <label class="flyer-modal__radio"><input type="radio" name="flyerType" value="shortlet"> Short Let</label>
+      </div>
+    </div>
+
+    <div class="flyer-modal__image-strip" id="flyerImageStrip">
+      <!-- Slide previews injected by JS -->
+    </div>
+
+    <div id="flyerNoImagesWarning" class="admin-alert admin-alert--warning" style="display:none">
+      Upload images first to generate a flyer.
+    </div>
+
+    <div class="admin-modal__actions" style="flex-direction:column;gap:0.75rem">
+      <button class="btn btn--gold btn--full" id="flyerDownloadBtn" onclick="downloadFlyer()">
+        <i class="fa-solid fa-download"></i> Download Slides (ZIP)
+      </button>
+      <button class="btn btn--outline" onclick="closeFlyerModal()" style="width:100%">Cancel</button>
+    </div>
   </div>
 </div>
 

@@ -8,6 +8,39 @@
   {{ 'Edit: ' + prop.title[:40] if prop else 'New Property' }}
 </div>
 
+{% if prop %}
+<div class="prop-form-action-bar">
+  <button type="button" class="btn btn--outline btn--sm"
+          data-action="open-flyer"
+          data-property-id="{{ prop.id }}"
+          data-property-title="{{ prop.title }}"
+          data-property-type="{{ prop.listing_type }}"
+          data-image-count="{{ prop.images | length }}">
+    <i class="fa-solid fa-file-image"></i> Generate Flyer
+  </button>
+  <button type="button" class="btn btn--outline btn--sm btn--share-green"
+          data-action="open-share"
+          data-property-id="{{ prop.id }}"
+          data-property-title="{{ prop.title }}"
+          data-property-ref="{{ prop.ref_code }}"
+          data-property-price="{{ prop.price | naira }}"
+          data-property-beds="{{ prop.bedrooms }}"
+          data-property-baths="{{ prop.bathrooms }}"
+          data-property-sqm="{{ prop.area_sqm }}"
+          data-property-city="{{ prop.city }}"
+          data-property-state="{{ prop.state }}"
+          data-property-type="{{ prop.listing_type }}"
+          data-property-period="{{ prop.price_period or '' }}"
+          data-property-slug="{{ prop.slug }}"
+          data-amenities="{{ prop.amenities | map(attribute='name') | join(' | ') | truncate(60) }}">
+    <i class="fa-brands fa-whatsapp"></i> Share via WhatsApp
+  </button>
+  <a href="{{ url_for('main.property_detail', slug=prop.slug) }}" target="_blank" class="btn btn--outline btn--sm">
+    <i class="fa-solid fa-arrow-up-right-from-square"></i> View Live Page
+  </a>
+</div>
+{% endif %}
+
 <form method="POST" class="admin-form" id="propertyForm"
       action="{{ url_for('admin.property_edit', property_id=prop.id) if prop else url_for('admin.property_new') }}">
   {{ form.hidden_tag() }}

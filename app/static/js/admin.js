@@ -136,6 +136,100 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+// ── FLYER GENERATOR MODAL ─────────────────────────────────────────────────
+
+let _flyerPropertyId  = null;
+let _flyerImageCount  = 0;
+
+function openFlyerModal(btn) {
+  const id        = btn.dataset.propertyId;
+  const title     = btn.dataset.propertyTitle;
+  const type      = btn.dataset.propertyType || '';
+  const imgCount  = parseInt(btn.dataset.imageCount || '0', 10);
+
+  _flyerPropertyId = id;
+  _flyerImageCount = imgCount;
+
+  const modal     = document.getElementById('flyerModal');
+  const titleEl   = document.getElementById('flyerModalTitle');
+  const strip     = document.getElementById('flyerImageStrip');
+  const warning   = document.getElementById('flyerNoImagesWarning');
+  const dlBtn     = document.getElementById('flyerDownloadBtn');
+
+  if (!modal) return;
+
+  if (titleEl) titleEl.textContent = title;
+
+  // Pre-select radio from property type
+  const typeMap = { 'For Sale': 'sale', 'For Rent': 'rent', 'Short Let': 'shortlet' };
+  const radioVal = typeMap[type] || 'sale';
+  modal.querySelectorAll('input[name="flyerType"]').forEach(r => {
+    r.checked = (r.value === radioVal);
+  });
+
+  // Image strip
+  if (strip) {
+    strip.innerHTML = '';
+    const labels = ['Slide 1', 'Slide 2', 'Slide 3', 'Slide 4'];
+    for (let i = 0; i < 4; i++) {
+      const div = document.createElement('div');
+      div.className = 'flyer-slide-thumb';
+      div.innerHTML = i < imgCount
+        ? `<div class="flyer-slide-thumb__img"><i class="fa-solid fa-image"></i></div><span>${labels[i]}</span>`
+        : `<div class="flyer-slide-thumb__img flyer-slide-thumb__img--empty"><i class="fa-solid fa-image" style="opacity:0.3"></i></div><span style="opacity:0.4">${labels[i]}</span>`;
+      strip.appendChild(div);
+    }
+  }
+
+  if (warning) warning.style.display = imgCount === 0 ? 'block' : 'none';
+  if (dlBtn)   dlBtn.disabled = imgCount === 0;
+
+  modal.style.display = 'flex';
+}
+
+function closeFlyerModal() {
+  const modal = document.getElementById('flyerModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function downloadFlyer() {
+  if (!_flyerPropertyId) return;
+  const selected = document.querySelector('input[name="flyerType"]:checked');
+  const type = selected ? selected.value : 'sale';
+
+  const btn = document.getElementById('flyerDownloadBtn');
+  const original = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating…';
+  btn.disabled = true;
+
+  const url = `/admin/properties/${_flyerPropertyId}/flyer?type=${type}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  setTimeout(() => {
+    btn.innerHTML = original;
+    btn.disabled = _flyerImageCount === 0;
+  }, 3000);
+}
+
+// Wire all flyer buttons on page load
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[data-action="open-flyer"]').forEach(btn => {
+    btn.addEventListener('click', () => openFlyerModal(btn));
+  });
+
+  // Also wire share buttons inside admin (they use main.js openShareModal)
+  document.querySelectorAll('[data-action="open-share"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (typeof openShareModal === 'function') openShareModal(btn);
+    });
+  });
+});
+
 // ── CSRF HELPER ────────────────────────────────────────────────────────────
 function getCsrfFromCookie() {
   const match = document.cookie.match(/csrf_token=([^;]+)/);

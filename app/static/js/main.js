@@ -277,3 +277,102 @@ function updateShortlistBadge(count) {
   if (!toggleBtn || !sidebar) return;
   toggleBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
 })();
+
+// ─── WhatsApp Share Card ───────────────────────────────────────────────────
+
+const SHARE_MODAL    = document.getElementById('share-modal');
+const SHARE_TEXTAREA = document.getElementById('share-message');
+
+function openShareModal(btn) {
+  if (!SHARE_MODAL || !SHARE_TEXTAREA) return;
+
+  const data = {
+    title:    btn.dataset.propertyTitle  || '',
+    ref:      btn.dataset.propertyRef    || '',
+    price:    btn.dataset.propertyPrice  || '',
+    period:   btn.dataset.propertyPeriod || '',
+    beds:     btn.dataset.propertyBeds   || '',
+    baths:    btn.dataset.propertyBaths  || '',
+    sqm:      btn.dataset.propertySqm    || '',
+    city:     btn.dataset.propertyCity   || '',
+    state:    btn.dataset.propertyState  || '',
+    slug:     btn.dataset.propertySlug   || '',
+    amenities: btn.dataset.amenities     || '',
+    siteUrl:  document.body.dataset.siteUrl   || '',
+    phone:    document.body.dataset.brandPhone || '',
+  };
+
+  let priceLine = data.price;
+  if (data.period) priceLine += ' / ' + data.period;
+
+  let statsLine = '';
+  if (data.beds  && data.beds  !== '0') statsLine += `🛏 ${data.beds} Beds  `;
+  if (data.baths && data.baths !== '0') statsLine += `🚿 ${data.baths} Baths  `;
+  if (data.sqm   && data.sqm   !== '0') statsLine += `📐 ${data.sqm} sqm`;
+  statsLine = statsLine.trim();
+
+  let amenityLine = '';
+  if (data.amenities) amenityLine = `\n✅ ${data.amenities}\n`;
+
+  const message =
+`🏡 *${data.title}*
+
+💰 ${priceLine}
+${statsLine}
+📍 ${data.city}, ${data.state}
+🔖 Ref: ${data.ref}
+${amenityLine}
+View full details & photos 👇
+${data.siteUrl}/properties/${data.slug}
+
+📞 Call/WhatsApp: ${data.phone}`;
+
+  SHARE_TEXTAREA.value = message;
+  SHARE_MODAL.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeShareModal() {
+  if (!SHARE_MODAL) return;
+  SHARE_MODAL.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Wire up once DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  if (!SHARE_MODAL) return;
+
+  // Copy button
+  const copyBtn = document.getElementById('share-copy-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+      navigator.clipboard.writeText(SHARE_TEXTAREA.value).then(() => {
+        this.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        this.classList.add('copied');
+        setTimeout(() => {
+          this.innerHTML = '<i class="fa-solid fa-copy"></i> Copy Message';
+          this.classList.remove('copied');
+        }, 2500);
+      });
+    });
+  }
+
+  // WhatsApp button
+  const waBtn = document.getElementById('share-whatsapp-btn');
+  if (waBtn) {
+    waBtn.addEventListener('click', function() {
+      const msg = encodeURIComponent(SHARE_TEXTAREA.value);
+      window.open('https://wa.me/?text=' + msg, '_blank');
+    });
+  }
+
+  // Close on overlay click
+  SHARE_MODAL.addEventListener('click', function(e) {
+    if (e.target === SHARE_MODAL) closeShareModal();
+  });
+
+  // Wire all share trigger buttons
+  document.querySelectorAll('[data-action="open-share"]').forEach(btn => {
+    btn.addEventListener('click', () => openShareModal(btn));
+  });
+});

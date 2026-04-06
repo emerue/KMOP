@@ -45,6 +45,15 @@ def create_app(config_name=None):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+    # Load brand configuration
+    from app.brand import BRAND
+    app.config['BRAND'] = BRAND
+
+    # Make BRAND available in every Jinja2 template automatically
+    @app.context_processor
+    def inject_brand():
+        return dict(brand=app.config['BRAND'])
+
     # Inject current datetime into all templates
     @app.context_processor
     def inject_now():

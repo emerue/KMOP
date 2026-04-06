@@ -514,3 +514,43 @@ def rates():
         return redirect(url_for('admin.rates'))
 
     return render_template('admin/rates.html', usd=usd, gbp=gbp)
+
+
+# ─── BRAND SETTINGS ───────────────────────────────────────────────────────────
+
+@admin.route('/brand')
+@login_required
+def brand_settings():
+    return render_template('admin/brand.html')
+
+
+# ─── FLYER GENERATOR ──────────────────────────────────────────────────────────
+
+@admin.route('/properties/<int:property_id>/flyer')
+@login_required
+def generate_flyer(property_id):
+    from io import BytesIO
+    import zipfile
+    from flask import send_file
+    from .flyer import generate_property_flyer, generate_caption
+
+    prop = Property.query.get_or_404(property_id)
+    listing_type = request.args.get('type', 'sale')
+    brand = current_app.config['BRAND']
+
+    slides = generate_property_flyer(prop, listing_type, brand)
+    caption = generate_caption(prop, listing_type, brand)
+
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for i, slide_bytes in enumerate(slides, 1):
+            zf.writestr(f"{prop.ref_code}-slide-{i}.jpg", slide_bytes.getvalue())
+        zf.writestr("caption.txt", caption)
+
+    zip_buffer.seek(0)
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=f"{prop.ref_code}-flyer.zip"
+    )

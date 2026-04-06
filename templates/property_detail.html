@@ -198,16 +198,25 @@
           <span>Save to Shortlist</span>
         </button>
 
-        <!-- Share -->
-        <div class="detail-share">
-          <a href="https://wa.me/?text={{ (prop.title + ' — ' + request.url) | urlencode }}"
-             class="btn btn--whatsapp btn--sm btn--full" target="_blank" rel="noopener">
-            <i class="fa-brands fa-whatsapp"></i> Share on WhatsApp
-          </a>
-          <button onclick="navigator.clipboard.writeText(window.location.href).then(() => alert('Link copied!'))" class="btn btn--outline btn--sm btn--full">
-            <i class="fa-solid fa-link"></i> Copy Link
-          </button>
-        </div>
+        <!-- Share via WhatsApp Card -->
+        <button
+          class="btn-share-card"
+          data-action="open-share"
+          data-property-title="{{ prop.title }}"
+          data-property-ref="{{ prop.ref_code }}"
+          data-property-price="{{ prop.price | naira }}"
+          data-property-period="{{ prop.price_period or '' }}"
+          data-property-beds="{{ prop.bedrooms }}"
+          data-property-baths="{{ prop.bathrooms }}"
+          data-property-sqm="{{ prop.area_sqm }}"
+          data-property-city="{{ prop.city }}"
+          data-property-state="{{ prop.state }}"
+          data-property-slug="{{ prop.slug }}"
+          data-amenities="{{ prop.amenities[:3] | map(attribute='name') | join(' | ') }}"
+        >
+          <i class="fa-brands fa-whatsapp"></i>
+          Share via WhatsApp
+        </button>
       </aside>
 
     </div>
@@ -247,6 +256,27 @@
   </div>
 </section>
 {% endif %}
+
+<!-- Mobile Floating Share Bar -->
+<div class="mobile-share-bar">
+  <button
+    data-action="open-share"
+    data-property-title="{{ prop.title }}"
+    data-property-ref="{{ prop.ref_code }}"
+    data-property-price="{{ prop.price | naira }}"
+    data-property-period="{{ prop.price_period or '' }}"
+    data-property-beds="{{ prop.bedrooms }}"
+    data-property-baths="{{ prop.bathrooms }}"
+    data-property-sqm="{{ prop.area_sqm }}"
+    data-property-city="{{ prop.city }}"
+    data-property-state="{{ prop.state }}"
+    data-property-slug="{{ prop.slug }}"
+    data-amenities="{{ prop.amenities[:3] | map(attribute='name') | join(' | ') }}"
+  >
+    <i class="fa-brands fa-whatsapp"></i>
+    Share Property
+  </button>
+</div>
 
 {% endblock %}
 
