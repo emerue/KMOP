@@ -84,6 +84,8 @@ class Property(db.Model):
     def cover_image_url(self):
         img = self.cover_image
         if img:
+            if img.filename.startswith('http'):
+                return img.filename
             return '/static/uploads/properties/' + img.filename
         return None
 

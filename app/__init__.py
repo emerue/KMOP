@@ -25,9 +25,12 @@ def create_app(config_name=None):
     )
     app.config.from_object(config.get(config_name, config['default']))
 
-    # Ensure instance folder exists
-    os.makedirs(app.instance_path, exist_ok=True)
-    os.makedirs(os.path.join(app.static_folder, 'uploads', 'properties'), exist_ok=True)
+    # Ensure instance/upload folders exist (skipped on read-only filesystems like Vercel)
+    try:
+        os.makedirs(app.instance_path, exist_ok=True)
+        os.makedirs(os.path.join(app.static_folder, 'uploads', 'properties'), exist_ok=True)
+    except OSError:
+        pass
 
     # Init extensions
     db.init_app(app)
@@ -86,6 +89,11 @@ def create_app(config_name=None):
 
     # Register CLI commands
     register_commands(app)
+
+    # Auto-create all tables in production (no need to run flask db upgrade on Vercel)
+    if config_name == 'production':
+        with app.app_context():
+            db.create_all()
 
     return app
 

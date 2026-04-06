@@ -14,12 +14,12 @@ from .forms import PropertyForm, AgentForm, AMENITIES_LIST
 
 
 def save_image(file_obj, folder, size=(1200, 900), square=False):
-    """Resize and save an uploaded image. Returns filename."""
+    """Process an uploaded image. Returns Cloudinary URL (production) or local filename (dev)."""
+    import io as _io
     img = Image.open(file_obj)
     img = img.convert('RGB')
 
     if square:
-        # Center-crop to square
         w, h = img.size
         min_dim = min(w, h)
         left = (w - min_dim) // 2
@@ -29,10 +29,26 @@ def save_image(file_obj, folder, size=(1200, 900), square=False):
     else:
         img.thumbnail(size, Image.LANCZOS)
 
-    filename = uuid.uuid4().hex[:12] + '.jpg'
-    filepath = os.path.join(folder, filename)
-    img.save(filepath, 'JPEG', quality=85, optimize=True)
-    return filename
+    if os.environ.get('CLOUDINARY_URL'):
+        # Upload directly to Cloudinary — no local disk write needed
+        import cloudinary.uploader
+        buf = _io.BytesIO()
+        img.save(buf, 'JPEG', quality=85, optimize=True)
+        buf.seek(0)
+        result = cloudinary.uploader.upload(
+            buf,
+            resource_type='image',
+            format='jpg',
+            quality=85,
+            folder='kingmac'
+        )
+        return result['secure_url']
+    else:
+        os.makedirs(folder, exist_ok=True)
+        filename = uuid.uuid4().hex[:12] + '.jpg'
+        filepath = os.path.join(folder, filename)
+        img.save(filepath, 'JPEG', quality=85, optimize=True)
+        return filename
 
 
 @admin.route('/dashboard')
@@ -232,7 +248,7 @@ def media_upload(property_id):
             uploaded.append({
                 'id': img.id,
                 'filename': filename,
-                'url': '/static/uploads/properties/' + filename,
+                'url': filename if filename.startswith('http') else '/static/uploads/properties/' + filename,
                 'is_cover': is_cover,
                 'sort_order': img.sort_order,
             })
