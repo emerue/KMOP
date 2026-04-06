@@ -1,0 +1,235 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Media Manager — {{ prop.title[:40] }}{% endblock %}
+{% block page_title %}Media Manager{% endblock %}
+
+{% block content %}
+<div class="admin-breadcrumb">
+  <a href="{{ url_for('admin.properties') }}">Properties</a> /
+  <a href="{{ url_for('admin.property_edit', property_id=prop.id) }}">{{ prop.title[:40] }}</a> /
+  Manage Media
+</div>
+
+<div class="media-header">
+  <h2 class="media-header__title">{{ prop.title }}</h2>
+  <span class="prop-ref">{{ prop.ref_code }}</span>
+</div>
+
+<!-- ZONE 1: UPLOAD -->
+<div class="admin-card media-upload-zone" id="uploadZone">
+  <h3 class="media-upload-zone__title">Upload Images</h3>
+  <div class="dropzone" id="dropzone" onclick="document.getElementById('imageInput').click()">
+    <i class="fa-solid fa-cloud-arrow-up dropzone__icon"></i>
+    <p class="dropzone__primary">Drag &amp; drop images here, or click to browse</p>
+    <p class="dropzone__secondary">JPG, PNG, WebP — Multiple files allowed</p>
+  </div>
+  <input type="file" id="imageInput" name="images" multiple accept="image/jpeg,image/png,image/webp" style="display:none">
+
+  <div class="upload-previews" id="uploadPreviews"></div>
+
+  <button class="btn btn--gold" id="uploadBtn" style="display:none" onclick="uploadImages()">
+    <i class="fa-solid fa-upload"></i> Upload All
+  </button>
+  <div class="upload-progress" id="uploadProgress" style="display:none">
+    <div class="upload-progress__bar"></div>
+    <span>Uploading…</span>
+  </div>
+</div>
+
+<!-- ZONE 2: EXISTING IMAGES -->
+<div class="admin-card">
+  <h3 class="media-existing__title">Existing Images <span id="imageCount">{{ prop.images|length }}</span></h3>
+  <p class="media-existing__hint">Drag to reorder · Click ★ to set cover · Click 🗑 to delete</p>
+
+  <div class="media-grid" id="mediaGrid">
+    {% for img in prop.images %}
+    {% set src = img.filename if img.filename.startswith('http') else '/static/uploads/properties/' + img.filename %}
+    <div class="media-tile" data-id="{{ img.id }}" id="media-tile-{{ img.id }}">
+      <img src="{{ src }}" alt="Image {{ loop.index }}" loading="lazy">
+      {% if img.is_cover %}
+      <span class="media-tile__cover-badge">COVER</span>
+      {% endif %}
+      <div class="media-tile__actions">
+        <button class="media-tile__btn media-tile__btn--cover" onclick="setCover({{ img.id }}, this)" title="Set as cover">
+          <i class="fa-solid fa-star"></i>
+        </button>
+        <span class="media-tile__drag" title="Drag to reorder"><i class="fa-solid fa-arrows-up-down-left-right"></i></span>
+        <button class="media-tile__btn media-tile__btn--delete" onclick="deleteImage({{ img.id }}, this)" title="Delete">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+    {% else %}
+    <p class="media-empty" id="mediaEmpty">No images yet. Upload some above.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="media-footer">
+  <a href="{{ url_for('admin.properties') }}" class="btn btn--outline">← Done — Back to Properties</a>
+  <a href="{{ url_for('main.property_detail', slug=prop.slug) }}" target="_blank" class="btn btn--outline">
+    <i class="fa-solid fa-arrow-up-right-from-square"></i> View Live Listing
+  </a>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const PROPERTY_ID = {{ prop.id }};
+const CSRF_TOKEN = '{{ csrf_token() }}';
+
+// ── Drag & Drop Upload ──────────────────────────────────────────────────────
+const dropzone = document.getElementById('dropzone');
+const imageInput = document.getElementById('imageInput');
+const previews = document.getElementById('uploadPreviews');
+const uploadBtn = document.getElementById('uploadBtn');
+let filesToUpload = [];
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+imageInput.addEventListener('change', e => handleFiles(e.target.files));
+
+function handleFiles(files) {
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    filesToUpload.push(file);
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const div = document.createElement('div');
+      div.className = 'upload-preview-item';
+      div.innerHTML = `
+        <img src="${ev.target.result}" alt="${file.name}">
+        <span class="upload-preview-item__name">${file.name}</span>
+        <button onclick="removePreview(this, '${file.name}')" class="upload-preview-item__remove">
+          <i class="fa-solid fa-xmark"></i>
+        </button>`;
+      previews.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+  if (filesToUpload.length > 0) uploadBtn.style.display = 'inline-flex';
+}
+
+function removePreview(btn, name) {
+  filesToUpload = filesToUpload.filter(f => f.name !== name);
+  btn.parentElement.remove();
+  if (filesToUpload.length === 0) uploadBtn.style.display = 'none';
+}
+
+async function uploadImages() {
+  if (filesToUpload.length === 0) return;
+  const progress = document.getElementById('uploadProgress');
+  uploadBtn.disabled = true;
+  progress.style.display = 'flex';
+
+  const formData = new FormData();
+  filesToUpload.forEach(f => formData.append('images', f));
+  formData.append('csrf_token', CSRF_TOKEN);
+
+  try {
+    const res = await fetch(`/admin/properties/${PROPERTY_ID}/media/upload`, {
+      method: 'POST', body: formData
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('mediaEmpty')?.remove();
+      data.images.forEach(img => appendImageTile(img));
+      previews.innerHTML = '';
+      filesToUpload = [];
+      uploadBtn.style.display = 'none';
+      updateImageCount();
+    }
+  } catch (e) {
+    alert('Upload failed. Please try again.');
+  }
+
+  progress.style.display = 'none';
+  uploadBtn.disabled = false;
+}
+
+function appendImageTile(img) {
+  const grid = document.getElementById('mediaGrid');
+  const div = document.createElement('div');
+  div.className = 'media-tile';
+  div.dataset.id = img.id;
+  div.id = `media-tile-${img.id}`;
+  div.innerHTML = `
+    <img src="${img.url}" alt="Image" loading="lazy">
+    ${img.is_cover ? '<span class="media-tile__cover-badge">COVER</span>' : ''}
+    <div class="media-tile__actions">
+      <button class="media-tile__btn media-tile__btn--cover" onclick="setCover(${img.id}, this)" title="Set as cover">
+        <i class="fa-solid fa-star"></i>
+      </button>
+      <span class="media-tile__drag" title="Drag to reorder"><i class="fa-solid fa-arrows-up-down-left-right"></i></span>
+      <button class="media-tile__btn media-tile__btn--delete" onclick="deleteImage(${img.id}, this)" title="Delete">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>`;
+  grid.appendChild(div);
+}
+
+// ── Set Cover ──────────────────────────────────────────────────────────────
+async function setCover(imgId, btn) {
+  const res = await fetch(`/admin/properties/${PROPERTY_ID}/media/${imgId}/set-cover`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/json' }
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.querySelectorAll('.media-tile__cover-badge').forEach(b => b.remove());
+    const tile = document.getElementById(`media-tile-${imgId}`);
+    const badge = document.createElement('span');
+    badge.className = 'media-tile__cover-badge';
+    badge.textContent = 'COVER';
+    tile.prepend(badge);
+  }
+}
+
+// ── Delete Image ───────────────────────────────────────────────────────────
+async function deleteImage(imgId, btn) {
+  if (!confirm('Delete this image? This cannot be undone.')) return;
+  const res = await fetch(`/admin/properties/${PROPERTY_ID}/media/${imgId}/delete`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/json' }
+  });
+  const data = await res.json();
+  if (data.success) {
+    const tile = document.getElementById(`media-tile-${imgId}`);
+    tile.style.transition = 'opacity 0.3s, transform 0.3s';
+    tile.style.opacity = '0';
+    tile.style.transform = 'scale(0.9)';
+    setTimeout(() => { tile.remove(); updateImageCount(); }, 300);
+  }
+}
+
+function updateImageCount() {
+  const count = document.querySelectorAll('.media-tile').length;
+  document.getElementById('imageCount').textContent = count;
+}
+
+// ── SortableJS Drag Reorder ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const grid = document.getElementById('mediaGrid');
+  if (typeof Sortable !== 'undefined' && grid) {
+    Sortable.create(grid, {
+      animation: 200,
+      handle: '.media-tile__drag',
+      ghostClass: 'media-tile--ghost',
+      onEnd: async () => {
+        const order = Array.from(grid.querySelectorAll('.media-tile')).map(t => parseInt(t.dataset.id));
+        await fetch(`/admin/properties/${PROPERTY_ID}/media/reorder`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order })
+        });
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

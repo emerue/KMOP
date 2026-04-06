@@ -1,0 +1,177 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ 'Edit' if prop else 'Add' }} Property{% endblock %}
+{% block page_title %}{{ 'Edit' if prop else 'Add' }} Property{% endblock %}
+
+{% block content %}
+<div class="admin-breadcrumb">
+  <a href="{{ url_for('admin.properties') }}">Properties</a> /
+  {{ 'Edit: ' + prop.title[:40] if prop else 'New Property' }}
+</div>
+
+<form method="POST" class="admin-form" id="propertyForm"
+      action="{{ url_for('admin.property_edit', property_id=prop.id) if prop else url_for('admin.property_new') }}">
+  {{ form.hidden_tag() }}
+
+  <div class="admin-form-tabs" x-data="{ tab: 'basic' }">
+    <div class="admin-form-tabs__nav">
+      <button type="button" @click="tab = 'basic'" :class="{ active: tab === 'basic' }">Basic Details</button>
+      <button type="button" @click="tab = 'location'" :class="{ active: tab === 'location' }">Location</button>
+      <button type="button" @click="tab = 'specs'" :class="{ active: tab === 'specs' }">Specifications</button>
+      <button type="button" @click="tab = 'amenities'" :class="{ active: tab === 'amenities' }">Amenities</button>
+      <button type="button" @click="tab = 'settings'" :class="{ active: tab === 'settings' }">Settings</button>
+    </div>
+
+    <!-- BASIC -->
+    <div class="admin-form-tab" x-show="tab === 'basic'">
+      <div class="form-group">
+        <label>Title *</label>
+        {{ form.title(class="form-control", id="propTitle", oninput="autoSlug()") }}
+      </div>
+      <div class="form-group">
+        <label>Slug *</label>
+        {{ form.slug(class="form-control", id="propSlug") }}
+        <small>Auto-generated from title. Edit if needed.</small>
+      </div>
+      <div class="form-group">
+        <label>Description *</label>
+        {{ form.description(class="form-control", rows=8) }}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Property Type *</label>
+          {{ form.property_type(class="form-control") }}
+        </div>
+        <div class="form-group">
+          <label>Listing Type *</label>
+          {{ form.listing_type(class="form-control") }}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price (₦) *</label>
+          {{ form.price(class="form-control", placeholder="e.g. 120000000") }}
+        </div>
+        <div class="form-group">
+          <label>Price Period</label>
+          {{ form.price_period(class="form-control", placeholder="per month / per night (leave blank for sale)") }}
+        </div>
+      </div>
+    </div>
+
+    <!-- LOCATION -->
+    <div class="admin-form-tab" x-show="tab === 'location'">
+      <div class="form-row">
+        <div class="form-group">
+          <label>City *</label>
+          {{ form.city(class="form-control") }}
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          {{ form.state(class="form-control", placeholder="e.g. Lagos") }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Full Address</label>
+        {{ form.address(class="form-control", placeholder="e.g. 14 Bourdillon Road, Ikoyi") }}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Latitude</label>
+          {{ form.latitude(class="form-control", placeholder="e.g. 6.4550") }}
+        </div>
+        <div class="form-group">
+          <label>Longitude</label>
+          {{ form.longitude(class="form-control", placeholder="e.g. 3.4318") }}
+        </div>
+      </div>
+    </div>
+
+    <!-- SPECS -->
+    <div class="admin-form-tab" x-show="tab === 'specs'">
+      <div class="form-row form-row--3">
+        <div class="form-group">
+          <label>Bedrooms</label>
+          {{ form.bedrooms(class="form-control", placeholder="0") }}
+        </div>
+        <div class="form-group">
+          <label>Bathrooms</label>
+          {{ form.bathrooms(class="form-control", placeholder="0") }}
+        </div>
+        <div class="form-group">
+          <label>Toilets</label>
+          {{ form.toilets(class="form-control", placeholder="0") }}
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Parking Spaces</label>
+          {{ form.parking_spaces(class="form-control", placeholder="0") }}
+        </div>
+        <div class="form-group">
+          <label>Area (sqm)</label>
+          {{ form.area_sqm(class="form-control", placeholder="e.g. 250") }}
+        </div>
+      </div>
+    </div>
+
+    <!-- AMENITIES -->
+    <div class="admin-form-tab" x-show="tab === 'amenities'">
+      <p class="form-hint">Select all amenities that apply to this property.</p>
+      <div class="amenities-checkbox-grid">
+        {% for amenity in amenities_list %}
+        <label class="amenity-check-label">
+          <input type="checkbox" name="amenities" value="{{ amenity }}"
+                 {% if amenity in selected_amenities %}checked{% endif %}>
+          <span>{{ amenity }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="admin-form-tab" x-show="tab === 'settings'">
+      <div class="form-group">
+        <label>Assign Agent</label>
+        {{ form.agent_id(class="form-control") }}
+      </div>
+      <div class="admin-form-checks">
+        <label class="admin-check-label">
+          {{ form.is_featured() }}
+          <span>Mark as Featured Property</span>
+        </label>
+        <label class="admin-check-label">
+          {{ form.is_published(checked=True) }}
+          <span>Published (visible on site)</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-form-footer">
+    <a href="{{ url_for('admin.properties') }}" class="btn btn--outline">Cancel</a>
+    <button type="submit" class="btn btn--gold btn--lg">
+      {{ 'Save Changes' if prop else 'Create Property' }} →
+    </button>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.2/cdn.min.js"></script>
+<script>
+let slugManuallyEdited = false;
+document.getElementById('propSlug')?.addEventListener('input', () => { slugManuallyEdited = true; });
+
+function autoSlug() {
+  if (slugManuallyEdited) return;
+  const title = document.getElementById('propTitle').value;
+  const slug = title.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+  document.getElementById('propSlug').value = slug;
+}
+</script>
+{% endblock %}

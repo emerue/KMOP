@@ -1,0 +1,91 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Exchange Rates{% endblock %}
+{% block page_title %}Exchange Rates{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width:640px;">
+  <div class="admin-card__header">
+    <h3>NGN Exchange Rates</h3>
+    {% if usd %}
+    <span style="font-size:0.78rem;color:#aaa;">
+      Last updated: {{ usd.updated_at.strftime('%d %b %Y, %H:%M') }} UTC
+    </span>
+    {% endif %}
+  </div>
+
+  <div style="padding:1.5rem;">
+    <p style="font-size:0.85rem;color:#666;margin-bottom:1.5rem;line-height:1.6;">
+      These rates define how prices are converted across the site (₦ → $ → £).
+      Rates are cached in the visitor's browser for <strong>24 hours</strong> then
+      refreshed automatically. You can also override them here at any time.
+    </p>
+
+    <!-- Manual update form -->
+    <form method="POST" action="{{ url_for('admin.rates') }}" class="admin-form" style="gap:1rem;">
+      {{ csrf_token_input() if csrf_token_input is defined }}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="save">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>USD Rate <span style="color:#aaa;font-weight:400;">(1 NGN = ? USD)</span></label>
+          <input type="number" name="usd_rate" step="0.000001" min="0"
+                 class="form-control"
+                 value="{{ '%.6f' % usd.rate if usd else '0.000630' }}"
+                 placeholder="0.000630">
+          <small>e.g. 0.000630 means ₦1 = $0.000630 (i.e. $1 ≈ ₦1,587)</small>
+        </div>
+        <div class="form-group">
+          <label>GBP Rate <span style="color:#aaa;font-weight:400;">(1 NGN = ? GBP)</span></label>
+          <input type="number" name="gbp_rate" step="0.000001" min="0"
+                 class="form-control"
+                 value="{{ '%.6f' % gbp.rate if gbp else '0.000500' }}"
+                 placeholder="0.000500">
+          <small>e.g. 0.000500 means ₦1 = £0.000500 (i.e. £1 ≈ ₦2,000)</small>
+        </div>
+      </div>
+
+      <div class="admin-form-footer" style="justify-content:space-between;align-items:center;">
+        <!-- Live refresh -->
+        <form method="POST" action="{{ url_for('admin.rates') }}" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="refresh">
+          <button type="submit" class="btn btn--outline">
+            <i class="fa-solid fa-rotate"></i> Fetch Live Rates
+          </button>
+        </form>
+        <button type="submit" class="btn btn--gold">
+          <i class="fa-solid fa-floppy-disk"></i> Save Rates
+        </button>
+      </div>
+    </form>
+
+    <!-- Current rate preview -->
+    {% if usd and gbp %}
+    <div style="margin-top:2rem;padding:1.25rem;background:#faf9f7;border-radius:8px;border:1px solid #e8e4de;">
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#aaa;margin-bottom:0.75rem;">Current Rate Preview</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;text-align:center;">
+        <div>
+          <p style="font-size:1.4rem;font-weight:600;color:#C9A84C;">₦1,000,000</p>
+          <p style="font-size:0.78rem;color:#aaa;">One Million Naira</p>
+        </div>
+        <div>
+          <p style="font-size:1.4rem;font-weight:600;">${{ '{:,.0f}'.format(1000000 * usd.rate) }}</p>
+          <p style="font-size:0.78rem;color:#aaa;">US Dollars</p>
+        </div>
+        <div>
+          <p style="font-size:1.4rem;font-weight:600;">£{{ '{:,.0f}'.format(1000000 * gbp.rate) }}</p>
+          <p style="font-size:0.78rem;color:#aaa;">British Pounds</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <p style="font-size:0.75rem;color:#bbb;margin-top:1.5rem;line-height:1.6;">
+      <strong>Fetch Live Rates</strong> pulls current mid-market rates from
+      <a href="https://open.er-api.com" target="_blank" rel="noopener" style="color:#C9A84C;">open.er-api.com</a>
+      (free, no API key required). Visitors see a disclaimer that rates are approximate.
+    </p>
+  </div>
+</div>
+{% endblock %}

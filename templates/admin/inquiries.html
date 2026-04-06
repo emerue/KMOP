@@ -1,0 +1,134 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Inquiries{% endblock %}
+{% block page_title %}Inquiries{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+  <div class="admin-filter-tabs">
+    <a href="{{ url_for('admin.inquiries') }}" class="admin-filter-tab {% if current_filter == 'all' %}active{% endif %}">All</a>
+    <a href="{{ url_for('admin.inquiries', filter='unread') }}" class="admin-filter-tab {% if current_filter == 'unread' %}active{% endif %}">
+      Unread {% if unread_count > 0 %}<span class="admin-badge">{{ unread_count }}</span>{% endif %}
+    </a>
+    <a href="{{ url_for('admin.inquiries', filter='property') }}" class="admin-filter-tab {% if current_filter == 'property' %}active{% endif %}">Property</a>
+    <a href="{{ url_for('admin.inquiries', filter='general') }}" class="admin-filter-tab {% if current_filter == 'general' %}active{% endif %}">General</a>
+  </div>
+</div>
+
+<div class="admin-card">
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Type</th>
+          <th>Property</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inq in inquiries %}
+        <tr class="{% if not inq.is_read %}row--unread{% endif %}" onclick="openInquiryModal({{ inq.id }})" style="cursor:pointer">
+          <td><strong>{{ inq.name }}</strong></td>
+          <td>{{ inq.email }}</td>
+          <td>{{ inq.phone or '—' }}</td>
+          <td><span class="badge-type badge-type--{{ inq.inquiry_type }}">{{ inq.inquiry_type }}</span></td>
+          <td>
+            {% if inq.property %}
+            <a href="{{ url_for('main.property_detail', slug=inq.property.slug) }}" target="_blank" onclick="event.stopPropagation()">
+              {{ inq.property.ref_code }}
+            </a>
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ inq.created_at.strftime('%d %b %Y') }}</td>
+          <td>
+            <span class="status-badge {% if inq.is_read %}status-badge--read{% else %}status-badge--unread{% endif %}">
+              {{ 'Read' if inq.is_read else 'Unread' }}
+            </span>
+          </td>
+          <td class="admin-table__actions" onclick="event.stopPropagation()">
+            {% if not inq.is_read %}
+            <form method="POST" action="{{ url_for('admin.inquiry_mark_read', inquiry_id=inq.id) }}" style="display:inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="admin-action-btn" title="Mark as Read">
+                <i class="fa-solid fa-check"></i>
+              </button>
+            </form>
+            {% endif %}
+            <form method="POST" action="{{ url_for('admin.inquiry_delete', inquiry_id=inq.id) }}" style="display:inline"
+                  onsubmit="return confirm('Delete this inquiry?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="admin-action-btn admin-action-btn--danger" title="Delete">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="admin-table__empty">No inquiries found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Inquiry Detail Modal -->
+<div class="admin-modal" id="inquiryModal">
+  <div class="admin-modal__card admin-modal__card--wide">
+    <div class="admin-modal__header">
+      <h3 id="modalName">Inquiry</h3>
+      <button onclick="document.getElementById('inquiryModal').style.display='none'">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="admin-modal__body">
+      <div class="inquiry-detail-grid">
+        <div><label>Email</label><p id="modalEmail">—</p></div>
+        <div><label>Phone</label><p id="modalPhone">—</p></div>
+        <div><label>Type</label><p id="modalType">—</p></div>
+        <div><label>Date</label><p id="modalDate">—</p></div>
+      </div>
+      <div class="inquiry-detail-message">
+        <label>Message</label>
+        <p id="modalMessage">—</p>
+      </div>
+    </div>
+    <div class="admin-modal__actions">
+      <button class="btn btn--outline" onclick="document.getElementById('inquiryModal').style.display='none'">Close</button>
+      <a id="modalReplyBtn" href="#" class="btn btn--gold">Reply via Email</a>
+    </div>
+  </div>
+</div>
+
+{% set inquiry_data = {} %}
+<script>
+const INQUIRIES = {
+  {% for inq in inquiries %}
+  {{ inq.id }}: {
+    name: {{ inq.name | tojson }},
+    email: {{ inq.email | tojson }},
+    phone: {{ (inq.phone or '—') | tojson }},
+    type: {{ inq.inquiry_type | tojson }},
+    date: {{ inq.created_at.strftime('%d %b %Y, %H:%M') | tojson }},
+    message: {{ inq.message | tojson }}
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+};
+
+function openInquiryModal(id) {
+  const inq = INQUIRIES[id];
+  if (!inq) return;
+  document.getElementById('modalName').textContent = inq.name;
+  document.getElementById('modalEmail').textContent = inq.email;
+  document.getElementById('modalPhone').textContent = inq.phone;
+  document.getElementById('modalType').textContent = inq.type;
+  document.getElementById('modalDate').textContent = inq.date;
+  document.getElementById('modalMessage').textContent = inq.message;
+  document.getElementById('modalReplyBtn').href = `mailto:${inq.email}?subject=Re: Your KingMac Enquiry`;
+  document.getElementById('inquiryModal').style.display = 'flex';
+}
+</script>
+{% endblock %}

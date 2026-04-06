@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin{% endblock %} | KingMac Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="admin-body">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar__logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KingMac"
+         width="140" height="44" style="width:140px;height:44px;object-fit:contain;">
+    </div>
+    <nav class="admin-sidebar__nav">
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+        <i class="fa-solid fa-grid-2"></i> <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('admin.properties') }}" class="admin-nav-item {% if 'admin.propert' in request.endpoint %}active{% endif %}">
+        <i class="fa-solid fa-building"></i> <span>Properties</span>
+      </a>
+      <a href="{{ url_for('admin.inquiries') }}" class="admin-nav-item {% if request.endpoint == 'admin.inquiries' %}active{% endif %}">
+        <i class="fa-solid fa-envelope"></i>
+        <span>Inquiries</span>
+        {% set unread = namespace(count=0) %}
+        {# unread count handled in template #}
+      </a>
+      <a href="{{ url_for('admin.agents') }}" class="admin-nav-item {% if 'admin.agent' in request.endpoint %}active{% endif %}">
+        <i class="fa-solid fa-users"></i> <span>Agents</span>
+      </a>
+      <a href="{{ url_for('admin.subscribers') }}" class="admin-nav-item {% if request.endpoint == 'admin.subscribers' %}active{% endif %}">
+        <i class="fa-solid fa-bell"></i> <span>Subscribers</span>
+      </a>
+      <a href="{{ url_for('admin.rates') }}" class="admin-nav-item {% if request.endpoint == 'admin.rates' %}active{% endif %}">
+        <i class="fa-solid fa-arrow-right-arrow-left"></i> <span>Exchange Rates</span>
+      </a>
+      <div class="admin-sidebar__divider"></div>
+      <a href="{{ url_for('main.index') }}" class="admin-nav-item" target="_blank">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>View Site</span>
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="admin-nav-item admin-nav-item--logout">
+        <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="admin-main">
+    <!-- TOPBAR -->
+    <header class="admin-topbar">
+      <div class="admin-topbar__left">
+        <button class="admin-sidebar-toggle" onclick="document.getElementById('adminSidebar').classList.toggle('open')">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <h2 class="admin-topbar__title">{% block page_title %}Dashboard{% endblock %}</h2>
+      </div>
+      <div class="admin-topbar__right">
+        <span class="admin-topbar__user"><i class="fa-solid fa-circle-user"></i> {{ current_user.username }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="admin-topbar__logout">Logout</a>
+      </div>
+    </header>
+
+    <!-- FLASH -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="admin-flash-wrap">
+        {% for category, message in messages %}
+        <div class="admin-alert admin-alert--{{ category }}">
+          {{ message }}
+          <button onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="admin-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

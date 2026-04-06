@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Instant Property Valuation | KingMac of Property{% endblock %}
+{% block body_class %}page-valuation{% endblock %}
+
+{% block content %}
+
+<section class="page-hero page-hero--dark">
+  <div class="container">
+    <p class="section-tag">Free Tool — No Agents Required</p>
+    <h1 class="page-hero__title">What Is Your<br>Property Worth?</h1>
+    <p class="page-hero__sub">Get an instant price estimate based on active KingMac listings in your area. Powered by real Nigerian market data.</p>
+  </div>
+</section>
+
+<section class="valuation-section">
+  <div class="container">
+    <div class="valuation-card" id="valuationCard">
+
+      <!-- FORM STATE -->
+      <div id="valuationFormWrap">
+        <h2 class="valuation-card__title">Get My Estimate</h2>
+        <p class="valuation-card__sub">Fill in the details below and we'll generate an instant range based on comparable listings.</p>
+
+        <form id="valuationForm" class="valuation-form">
+          {{ form.hidden_tag() }}
+          <div class="form-row">
+            <div class="form-group">
+              <label>City *</label>
+              {{ form.city(class="form-control") }}
+            </div>
+            <div class="form-group">
+              <label>Property Type *</label>
+              {{ form.property_type(class="form-control") }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Bedrooms</label>
+              {{ form.bedrooms(class="form-control") }}
+            </div>
+            <div class="form-group">
+              <label>Approximate Area (sqm)</label>
+              {{ form.area_sqm(class="form-control", placeholder="e.g. 200") }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label>I want to *</label>
+            <div class="radio-group">
+              {% for subfield in form.listing_purpose %}
+              <label class="radio-label">
+                {{ subfield() }}
+                <span>{{ subfield.label.text }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="valuation-form__divider">
+            <span>Your Details (for our records)</span>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Your Name *</label>
+              {{ form.your_name(class="form-control", placeholder="Full name") }}
+            </div>
+            <div class="form-group">
+              <label>Phone Number *</label>
+              {{ form.your_phone(class="form-control", placeholder="+234 800 000 0000") }}
+            </div>
+          </div>
+          <button type="submit" class="btn btn--gold btn--full btn--lg" id="valuationSubmitBtn">
+            <i class="fa-solid fa-calculator"></i> Get My Estimate
+          </button>
+          <p class="valuation-form__disclaimer">This is an AI-assisted estimate based on current listings. Not a formal valuation.</p>
+        </form>
+      </div>
+
+      <!-- RESULTS STATE -->
+      <div id="valuationResults" style="display:none">
+        <div class="valuation-results__header">
+          <i class="fa-solid fa-chart-line valuation-results__icon"></i>
+          <h2>Estimated Value Range</h2>
+          <p id="resultsDisclaimer" class="valuation-results__disclaimer"></p>
+        </div>
+
+        <div class="valuation-range">
+          <div class="valuation-range__low">
+            <span class="valuation-range__label">Low Estimate</span>
+            <span class="valuation-range__value" id="resultLow">—</span>
+          </div>
+          <div class="valuation-range__divider">—</div>
+          <div class="valuation-range__high">
+            <span class="valuation-range__label">High Estimate</span>
+            <span class="valuation-range__value" id="resultHigh">—</span>
+          </div>
+        </div>
+
+        <div class="valuation-avg">
+          <span>Most likely around</span>
+          <span class="valuation-avg__value" id="resultAvg">—</span>
+        </div>
+
+        <div class="valuation-converted" id="resultConverted"></div>
+
+        <div class="valuation-results__ctas">
+          <a href="#" id="resultWhatsappBtn" class="btn btn--whatsapp btn--lg" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp"></i> Speak to an Agent About This
+          </a>
+          <a href="/properties" id="resultBrowseBtn" class="btn btn--outline btn--lg">
+            Browse Similar Properties →
+          </a>
+        </div>
+
+        <button onclick="resetValuation()" class="valuation-reset">← Start a new estimate</button>
+      </div>
+
+      <!-- NO DATA STATE -->
+      <div id="valuationNoData" style="display:none">
+        <div class="valuation-nodata">
+          <i class="fa-solid fa-triangle-exclamation valuation-nodata__icon"></i>
+          <h2>Not Enough Data Yet</h2>
+          <p>We don't have enough listings for this combination to generate an estimate.</p>
+          <p>Our agents can give you a personal quote instead.</p>
+          <a href="#" id="nodataWhatsappBtn" class="btn btn--whatsapp btn--lg" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp"></i> Request a Personal Valuation
+          </a>
+          <button onclick="resetValuation()" class="valuation-reset">← Try different criteria</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// RATES & SYMBOLS are defined in main.js and loaded from /api/rates with 24h cache
+const WHATSAPP_NUMBER = '2348000000000';
+
+function formatNaira(val) {
+  return '₦ ' + Math.round(val).toLocaleString();
+}
+
+document.getElementById('valuationForm')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('valuationSubmitBtn');
+  btn.textContent = 'Calculating…';
+  btn.disabled = true;
+
+  const data = new FormData(form);
+
+  try {
+    const res = await fetch('/valuation', { method: 'POST', body: data });
+    const json = await res.json();
+
+    if (!res.ok || json.errors) {
+      btn.textContent = 'Get My Estimate';
+      btn.disabled = false;
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    if (json.no_data) {
+      document.getElementById('valuationFormWrap').style.display = 'none';
+      document.getElementById('valuationNoData').style.display = 'block';
+      const msg = encodeURIComponent(`Hi KingMac, I used your valuation tool for a ${json.property_type} in ${json.city} but there wasn't enough data. I'd like a personal valuation.`);
+      document.getElementById('nodataWhatsappBtn').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+      return;
+    }
+
+    // Show results
+    document.getElementById('valuationFormWrap').style.display = 'none';
+    document.getElementById('valuationResults').style.display = 'block';
+
+    document.getElementById('resultLow').textContent = formatNaira(json.low);
+    document.getElementById('resultHigh').textContent = formatNaira(json.high);
+    document.getElementById('resultAvg').textContent = formatNaira(json.avg);
+    document.getElementById('resultsDisclaimer').textContent = json.disclaimer;
+
+    // Currency conversions
+    const currency = localStorage.getItem('km_currency') || 'NGN';
+    const others = ['USD', 'GBP'];
+    const convParts = others.map(c => `≈ ${SYMBOLS[c]} ${Math.round(json.avg * RATES[c]).toLocaleString()}`);
+    document.getElementById('resultConverted').textContent = convParts.join(' · ') + ' (estimated)';
+
+    // WhatsApp CTA
+    const beds = data.get('bedrooms') || '—';
+    const waMsg = encodeURIComponent(
+      `Hi KingMac, I just used your valuation tool.\nI have a ${json.property_type} in ${json.city} with ${beds} bedrooms.\nThe estimate came back at ₦${Math.round(json.avg).toLocaleString()}.\nI'd like to discuss further.`
+    );
+    document.getElementById('resultWhatsappBtn').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}`;
+
+    // Browse link
+    document.getElementById('resultBrowseBtn').href = `/properties?city=${encodeURIComponent(json.city)}&type=${encodeURIComponent(json.property_type)}`;
+
+  } catch (err) {
+    btn.textContent = 'Get My Estimate';
+    btn.disabled = false;
+    alert('Something went wrong. Please try again.');
+  }
+});
+
+function resetValuation() {
+  document.getElementById('valuationFormWrap').style.display = 'block';
+  document.getElementById('valuationResults').style.display = 'none';
+  document.getElementById('valuationNoData').style.display = 'none';
+  const btn = document.getElementById('valuationSubmitBtn');
+  if (btn) { btn.textContent = 'Get My Estimate'; btn.disabled = false; }
+}
+</script>
+{% endblock %}

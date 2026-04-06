@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block body_class %}page-home{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero__bg" style="background-image: url('https://images.unsplash.com/photo-1613977257363-707ba9348227?w=1800&q=85')"></div>
+  <div class="hero__overlay"></div>
+  <div class="hero__content container">
+    <p class="hero__eyebrow animate-hero">— Premium Real Estate · Nigeria</p>
+    <h1 class="hero__title animate-hero">
+      Find Your Dream<br>
+      <em class="hero__title--gold">Property</em> In Nigeria
+    </h1>
+    <p class="hero__sub animate-hero">
+      KingMac of Property connects discerning buyers with exceptional homes
+      and investment opportunities across Nigeria's finest addresses.
+    </p>
+    <div class="hero__ctas animate-hero">
+      <a href="{{ url_for('main.listings') }}" class="btn btn--gold btn--lg">Browse Properties</a>
+      <a href="{{ url_for('main.valuation') }}" class="btn btn--outline-white btn--lg">Get a Free Valuation →</a>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="hero__stats animate-hero">
+    <div class="container">
+      <div class="hero__stats-grid">
+        <div class="hero__stat">
+          <span class="hero__stat-number">500<span class="hero__stat-plus">+</span></span>
+          <span class="hero__stat-label">Properties Listed</span>
+        </div>
+        <div class="hero__stat-divider"></div>
+        <div class="hero__stat">
+          <span class="hero__stat-number">12</span>
+          <span class="hero__stat-label">Years of Excellence</span>
+        </div>
+        <div class="hero__stat-divider"></div>
+        <div class="hero__stat">
+          <span class="hero__stat-number">98<span class="hero__stat-plus">%</span></span>
+          <span class="hero__stat-label">Client Satisfaction</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEARCH BAR -->
+<section class="search-bar-section">
+  <div class="container">
+    <form class="search-bar" action="{{ url_for('main.listings') }}" method="GET">
+      <div class="search-bar__field">
+        <label>Location</label>
+        <select name="city">
+          <option value="">Any City</option>
+          <option>Lagos</option><option>Abuja</option><option>Port Harcourt</option>
+          <option>Ibadan</option><option>Kano</option><option>Enugu</option>
+          <option>Warri</option><option>Asaba</option><option>Owerri</option><option>Uyo</option>
+        </select>
+      </div>
+      <div class="search-bar__field">
+        <label>Property Type</label>
+        <select name="type">
+          <option value="">Any Type</option>
+          <option>Apartment</option><option>Duplex</option><option>Terrace</option>
+          <option>Detached</option><option>Semi-Detached</option>
+          <option>Land</option><option>Commercial</option><option>Penthouse</option>
+        </select>
+      </div>
+      <div class="search-bar__field">
+        <label>Listing Type</label>
+        <select name="listing">
+          <option value="">For Sale / Rent</option>
+          <option>For Sale</option><option>For Rent</option><option>Short Let</option>
+        </select>
+      </div>
+      <div class="search-bar__field">
+        <label>Max Budget (₦)</label>
+        <select name="budget">
+          <option value="">Any Budget</option>
+          <option value="50000000">Up to ₦50M</option>
+          <option value="100000000">Up to ₦100M</option>
+          <option value="200000000">Up to ₦200M</option>
+          <option value="500000000">Up to ₦500M</option>
+          <option value="1000000000">Up to ₦1B</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn--gold search-bar__btn">
+        <i class="fa-solid fa-magnifying-glass"></i> Search
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- FEATURED LISTINGS -->
+<section class="section section--light" id="featured">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <p class="section-tag animate-on-scroll">Featured Properties</p>
+        <h2 class="section-title animate-on-scroll" data-delay="0.1">Explore Our Portfolio</h2>
+      </div>
+      <a href="{{ url_for('main.listings') }}" class="section-header__link animate-on-scroll" data-delay="0.2">View All →</a>
+    </div>
+
+    <div class="featured-grid">
+      {% for prop in featured %}
+      {% set loop_images = [
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+        'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&q=80',
+        'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80',
+        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
+        'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80',
+        'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800&q=80'
+      ] %}
+      {% set cover = prop.cover_image %}
+      {% if cover %}
+        {% set img_src = cover.filename if cover.filename.startswith('http') else '/static/uploads/properties/' + cover.filename %}
+      {% else %}
+        {% set img_src = loop_images[loop.index0 % 6] %}
+      {% endif %}
+      <div class="property-card animate-on-scroll" data-delay="{{ loop.index0 * 0.1 }}">
+        <a href="{{ url_for('main.property_detail', slug=prop.slug) }}" class="property-card__link">
+          <div class="property-card__image-wrap">
+            <img src="{{ img_src }}" alt="{{ prop.title }}" class="property-card__image" loading="lazy">
+            <span class="property-card__badge property-card__badge--{{ prop.listing_type | lower | replace(' ', '-') }}">{{ prop.listing_type }}</span>
+            <button class="property-card__heart" data-property-id="{{ prop.id }}" onclick="toggleShortlist(event, {{ prop.id }})" aria-label="Save to shortlist">
+              <i class="fa-regular fa-heart"></i>
+            </button>
+          </div>
+          <div class="property-card__info">
+            <div class="property-card__price-wrap">
+              <span class="property-card__price property-price" data-price-ngn="{{ prop.price }}">{{ prop.price | naira }}</span>
+              {% if prop.price_period %}<span class="property-card__period">{{ prop.price_period }}</span>{% endif %}
+            </div>
+            <h3 class="property-card__title">{{ prop.title }}</h3>
+            <p class="property-card__location"><i class="fa-solid fa-location-dot"></i> {{ prop.city }}{% if prop.state %}, {{ prop.state }}{% endif %}</p>
+            <div class="property-card__meta">
+              {% if prop.bedrooms %}<span><i class="fa-solid fa-bed"></i> {{ prop.bedrooms }} Bed</span>{% endif %}
+              {% if prop.bathrooms %}<span><i class="fa-solid fa-bath"></i> {{ prop.bathrooms }} Bath</span>{% endif %}
+              {% if prop.area_sqm %}<span><i class="fa-solid fa-ruler-combined"></i> {{ prop.area_sqm }} sqm</span>{% endif %}
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- WHY CHOOSE KINGMAC -->
+<section class="section section--dark why-section">
+  <div class="container">
+    <div class="section-header section-header--center">
+      <p class="section-tag animate-on-scroll">Why KingMac</p>
+      <h2 class="section-title section-title--light animate-on-scroll" data-delay="0.1">The KingMac Difference</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-card animate-on-scroll" data-delay="0">
+        <span class="why-card__number">01</span>
+        <h3 class="why-card__title">Premium Listings</h3>
+        <p class="why-card__body">Every property in our portfolio is personally vetted. We only list exceptional properties that meet our exacting standards of quality and value.</p>
+      </div>
+      <div class="why-card animate-on-scroll" data-delay="0.12">
+        <span class="why-card__number">02</span>
+        <h3 class="why-card__title">Expert Agents</h3>
+        <p class="why-card__body">Our team of seasoned property consultants brings decades of combined market intelligence across Nigeria's most dynamic real estate markets.</p>
+      </div>
+      <div class="why-card animate-on-scroll" data-delay="0.24">
+        <span class="why-card__number">03</span>
+        <h3 class="why-card__title">End-to-End Support</h3>
+        <p class="why-card__body">From initial search to final keys, we guide you through every step — legal documentation, financing, inspections, and seamless handover.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUATION TEASER -->
+<section class="valuation-teaser">
+  <div class="valuation-teaser__left animate-on-scroll">
+    <p class="section-tag">Free Tool</p>
+    <h2 class="section-title section-title--light">What Is Your<br>Property Worth?</h2>
+    <p class="valuation-teaser__body">Get an instant price estimate based on real KingMac listings in your area. No forms. No agents. Just data.</p>
+    <a href="{{ url_for('main.valuation') }}" class="btn btn--outline-white btn--lg">Try the Valuation Tool →</a>
+  </div>
+  <div class="valuation-teaser__right">
+    <span class="valuation-teaser__symbol">₦</span>
+  </div>
+</section>
+
+<!-- SHORTLIST TEASER -->
+<section class="shortlist-teaser">
+  <div class="container">
+    <div class="shortlist-teaser__inner animate-on-scroll">
+      <i class="fa-solid fa-heart shortlist-teaser__icon"></i>
+      <p>Found a property you love? Save it with one tap.</p>
+      <a href="{{ url_for('main.shortlist') }}" class="btn btn--outline btn--sm">Start Your Shortlist →</a>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section section--light testimonials-section">
+  <div class="container">
+    <div class="testimonials-grid">
+      <div class="testimonials-left animate-on-scroll">
+        <p class="section-tag">Client Stories</p>
+        <h2 class="section-title">Trusted By<br>Our Clients</h2>
+        <p class="testimonials-sub">Over a decade of building relationships, delivering results, and exceeding expectations across Nigeria.</p>
+      </div>
+      <div class="testimonials-right">
+        <div class="testimonial-card animate-on-scroll" data-delay="0.1">
+          <div class="testimonial-card__stars">★★★★★</div>
+          <p class="testimonial-card__text">"KingMac helped me find my first home in Lekki within two weeks. The process was seamless and professional from start to finish."</p>
+          <p class="testimonial-card__author">— Adaeze Nwosu, <span>Lekki, Lagos</span></p>
+        </div>
+        <div class="testimonial-card animate-on-scroll" data-delay="0.2">
+          <div class="testimonial-card__stars">★★★★★</div>
+          <p class="testimonial-card__text">"I've worked with many property firms across Nigeria. None match KingMac's attention to detail and market knowledge."</p>
+          <p class="testimonial-card__author">— Tunde Okafor, <span>Property Investor, Abuja</span></p>
+        </div>
+        <div class="testimonial-card animate-on-scroll" data-delay="0.3">
+          <div class="testimonial-card__stars">★★★★★</div>
+          <p class="testimonial-card__text">"As a member of the diaspora, I trusted KingMac to handle my Abuja investment remotely. They delivered beyond expectations."</p>
+          <p class="testimonial-card__author">— Chisom Eze, <span>UK-based investor</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="cta-banner">
+  <div class="container">
+    <div class="cta-banner__inner animate-on-scroll">
+      <h2 class="cta-banner__title">Ready to find your dream property?</h2>
+      <p class="cta-banner__sub">Speak to our team today — no obligation, just expert guidance.</p>
+      <div class="cta-banner__btns">
+        <a href="{{ url_for('main.listings') }}" class="btn btn--dark btn--lg">Browse Properties</a>
+        <a href="{{ url_for('main.contact') }}" class="btn btn--dark-outline btn--lg">Get in Touch</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+{% block title %}{{ prop.title }} | KingMac of Property{% endblock %}
+{% block meta_description %}{{ prop.description[:160] }}{% endblock %}
+{% block og_title %}{{ prop.title }} | KingMac of Property{% endblock %}
+{% block og_description %}{{ prop.description[:160] }}{% endblock %}
+{% block body_class %}page-detail{% endblock %}
+
+{% block content %}
+
+{% set images = prop.images %}
+{% set cover = prop.cover_image %}
+
+<!-- IMAGE GALLERY -->
+<section class="gallery-section">
+  {% if images %}
+  <div class="gallery-main" id="galleryMain">
+    {% if cover %}
+      {% set main_src = cover.filename if cover.filename.startswith('http') else '/static/uploads/properties/' + cover.filename %}
+    {% else %}
+      {% set main_src = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80' %}
+    {% endif %}
+    <img src="{{ main_src }}" alt="{{ prop.title }}" id="galleryMainImg" loading="lazy">
+  </div>
+  {% if images|length > 1 %}
+  <div class="gallery-thumbs" id="galleryThumbs">
+    {% for img in images %}
+    {% set src = img.filename if img.filename.startswith('http') else '/static/uploads/properties/' + img.filename %}
+    <div class="gallery-thumb {% if img.is_cover %}active{% endif %}" onclick="swapGalleryImage('{{ src }}', this)">
+      <img src="{{ src }}" alt="Image {{ loop.index }}" loading="lazy">
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="gallery-placeholder">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KingMac of Property" class="gallery-placeholder__logo">
+    <p>No images available</p>
+  </div>
+  {% endif %}
+</section>
+
+<!-- PROPERTY OVERVIEW -->
+<section class="detail-section">
+  <div class="container">
+    <div class="detail-grid">
+
+      <!-- LEFT COL -->
+      <div class="detail-main">
+        <div class="detail-header">
+          <div class="detail-header__tags">
+            <span class="badge badge--listing">{{ prop.listing_type }}</span>
+            <span class="badge badge--type">{{ prop.property_type }}</span>
+            <span class="detail-ref">{{ prop.ref_code }}</span>
+          </div>
+          <h1 class="detail-title">{{ prop.title }}</h1>
+          <p class="detail-location">
+            <i class="fa-solid fa-location-dot"></i>
+            {{ prop.address or prop.city }}{% if prop.state and prop.address %}, {{ prop.state }}{% endif %}
+          </p>
+        </div>
+
+        <div class="detail-price-block">
+          <p class="detail-price property-price" data-price-ngn="{{ prop.price }}">{{ prop.price | naira }}</p>
+          {% if prop.price_period %}<p class="detail-price-period">{{ prop.price_period }}</p>{% endif %}
+          <p class="detail-price-converted" id="priceConverted"></p>
+          <p class="detail-price-note">* Rates are approximate and for guidance only.</p>
+        </div>
+
+        <!-- Key Stats -->
+        <div class="detail-stats">
+          {% if prop.bedrooms is not none and prop.bedrooms > 0 %}
+          <div class="detail-stat">
+            <i class="fa-solid fa-bed"></i>
+            <span class="detail-stat__value">{{ prop.bedrooms }}</span>
+            <span class="detail-stat__label">Bedroom{{ 's' if prop.bedrooms != 1 }}</span>
+          </div>
+          {% endif %}
+          {% if prop.bathrooms %}
+          <div class="detail-stat">
+            <i class="fa-solid fa-bath"></i>
+            <span class="detail-stat__value">{{ prop.bathrooms }}</span>
+            <span class="detail-stat__label">Bathroom{{ 's' if prop.bathrooms != 1 }}</span>
+          </div>
+          {% endif %}
+          {% if prop.toilets %}
+          <div class="detail-stat">
+            <i class="fa-solid fa-restroom"></i>
+            <span class="detail-stat__value">{{ prop.toilets }}</span>
+            <span class="detail-stat__label">Toilet{{ 's' if prop.toilets != 1 }}</span>
+          </div>
+          {% endif %}
+          {% if prop.parking_spaces %}
+          <div class="detail-stat">
+            <i class="fa-solid fa-square-parking"></i>
+            <span class="detail-stat__value">{{ prop.parking_spaces }}</span>
+            <span class="detail-stat__label">Parking</span>
+          </div>
+          {% endif %}
+          {% if prop.area_sqm %}
+          <div class="detail-stat">
+            <i class="fa-solid fa-ruler-combined"></i>
+            <span class="detail-stat__value">{{ prop.area_sqm }}</span>
+            <span class="detail-stat__label">sqm</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="detail-description">
+          <h2 class="detail-section-title">About This Property</h2>
+          <p>{{ prop.description }}</p>
+        </div>
+
+        <!-- Amenities -->
+        {% if prop.amenities %}
+        <div class="detail-amenities">
+          <h2 class="detail-section-title">Amenities & Features</h2>
+          <div class="amenities-grid">
+            {% for amenity in prop.amenities %}
+            <div class="amenity-chip">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>{{ amenity.name }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Map -->
+        {% if prop.latitude and prop.longitude %}
+        <div class="detail-map">
+          <h2 class="detail-section-title">Location</h2>
+          <div id="propertyMap" class="leaflet-map" data-lat="{{ prop.latitude }}" data-lng="{{ prop.longitude }}" data-title="{{ prop.title }}"></div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- RIGHT COL (sticky) -->
+      <aside class="detail-sidebar">
+        <!-- Agent Card -->
+        {% if prop.agent %}
+        <div class="agent-card">
+          {% set agent = prop.agent %}
+          {% if agent.photo %}
+            {% set agent_photo = agent.photo if agent.photo.startswith('http') else '/static/uploads/properties/' + agent.photo %}
+          {% else %}
+            {% set agent_photo = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80' %}
+          {% endif %}
+          <div class="agent-card__photo">
+            <img src="{{ agent_photo }}" alt="{{ agent.name }}" loading="lazy">
+          </div>
+          <div class="agent-card__info">
+            <h3 class="agent-card__name">{{ agent.name }}</h3>
+            <p class="agent-card__title">{{ agent.title }}</p>
+            <div class="agent-card__actions">
+              {% if agent.phone %}
+              <a href="tel:{{ agent.phone }}" class="btn btn--outline btn--sm"><i class="fa-solid fa-phone"></i> Call</a>
+              {% endif %}
+              {% if agent.whatsapp %}
+              <a href="https://wa.me/{{ agent.whatsapp }}?text=Hi%20{{ agent.name | urlencode }}%2C%20I%20saw%20{{ prop.title | urlencode }}%20on%20KingMac%20and%20I%27m%20interested."
+                 class="btn btn--whatsapp btn--sm" target="_blank" rel="noopener">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Inquiry Form -->
+        <div class="inquiry-form-card">
+          <h3 class="inquiry-form-card__title">Enquire About This Property</h3>
+          <div id="inquirySuccess" class="inquiry-success" style="display:none">
+            <i class="fa-solid fa-circle-check"></i>
+            <p>Thank you! We'll be in touch shortly.</p>
+          </div>
+          <form id="inquiryForm" data-slug="{{ prop.slug }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+              <input type="text" name="name" placeholder="Your Full Name" required class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="email" name="email" placeholder="Email Address" required class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="tel" name="phone" placeholder="Phone Number" class="form-control">
+            </div>
+            <div class="form-group">
+              <textarea name="message" rows="4" placeholder="I'm interested in this property and would like to schedule a viewing..." class="form-control" required>I'm interested in {{ prop.title }} ({{ prop.ref_code }}) and would like more information.</textarea>
+            </div>
+            <button type="submit" class="btn btn--gold btn--full">Send Enquiry</button>
+          </form>
+        </div>
+
+        <!-- Shortlist Button -->
+        <button class="shortlist-full-btn" id="detailShortlistBtn" data-property-id="{{ prop.id }}" onclick="toggleShortlist(event, {{ prop.id }})">
+          <i class="fa-regular fa-heart"></i>
+          <span>Save to Shortlist</span>
+        </button>
+
+        <!-- Share -->
+        <div class="detail-share">
+          <a href="https://wa.me/?text={{ (prop.title + ' — ' + request.url) | urlencode }}"
+             class="btn btn--whatsapp btn--sm btn--full" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp"></i> Share on WhatsApp
+          </a>
+          <button onclick="navigator.clipboard.writeText(window.location.href).then(() => alert('Link copied!'))" class="btn btn--outline btn--sm btn--full">
+            <i class="fa-solid fa-link"></i> Copy Link
+          </button>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>
+
+<!-- SIMILAR PROPERTIES -->
+{% if similar %}
+<section class="section section--light similar-section">
+  <div class="container">
+    <h2 class="section-title animate-on-scroll">Similar Properties</h2>
+    <div class="property-grid property-grid--3">
+      {% for p in similar %}
+      {% set cover2 = p.cover_image %}
+      {% if cover2 %}
+        {% set img2 = cover2.filename if cover2.filename.startswith('http') else '/static/uploads/properties/' + cover2.filename %}
+      {% else %}
+        {% set img2 = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80' %}
+      {% endif %}
+      <div class="property-card animate-on-scroll" data-delay="{{ loop.index0 * 0.1 }}">
+        <a href="{{ url_for('main.property_detail', slug=p.slug) }}" class="property-card__link">
+          <div class="property-card__image-wrap">
+            <img src="{{ img2 }}" alt="{{ p.title }}" class="property-card__image" loading="lazy">
+            <span class="property-card__badge property-card__badge--{{ p.listing_type | lower | replace(' ', '-') }}">{{ p.listing_type }}</span>
+          </div>
+          <div class="property-card__info">
+            <div class="property-card__price-wrap">
+              <span class="property-card__price property-price" data-price-ngn="{{ p.price }}">{{ p.price | naira }}</span>
+            </div>
+            <h3 class="property-card__title">{{ p.title }}</h3>
+            <p class="property-card__location"><i class="fa-solid fa-location-dot"></i> {{ p.city }}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Gallery image swap
+function swapGalleryImage(src, thumbEl) {
+  document.getElementById('galleryMainImg').src = src;
+  document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  thumbEl.classList.add('active');
+}
+
+// Inquiry form AJAX
+document.getElementById('inquiryForm')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const slug = form.dataset.slug;
+  const data = new FormData(form);
+  const btn = form.querySelector('button[type="submit"]');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`/properties/${slug}/inquire`, { method: 'POST', body: data });
+    const json = await res.json();
+    if (json.success) {
+      form.style.display = 'none';
+      document.getElementById('inquirySuccess').style.display = 'flex';
+    } else {
+      btn.textContent = 'Send Enquiry';
+      btn.disabled = false;
+      alert('Please check your details and try again.');
+    }
+  } catch {
+    btn.textContent = 'Send Enquiry';
+    btn.disabled = false;
+  }
+});
+
+// Init map
+document.addEventListener('DOMContentLoaded', function() {
+  const mapEl = document.getElementById('propertyMap');
+  if (mapEl && typeof L !== 'undefined') {
+    const lat = parseFloat(mapEl.dataset.lat);
+    const lng = parseFloat(mapEl.dataset.lng);
+    const title = mapEl.dataset.title;
+    const map = L.map('propertyMap', { scrollWheelZoom: false }).setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    const goldIcon = L.divIcon({
+      className: 'custom-marker',
+      html: '<div class="map-marker"><i class="fa-solid fa-location-dot"></i></div>',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40]
+    });
+    L.marker([lat, lng], { icon: goldIcon }).addTo(map).bindPopup(`<strong>${title}</strong>`).openPopup();
+  }
+
+  // Price converted line
+  updateDetailPriceConverted();
+  document.addEventListener('currencyChanged', updateDetailPriceConverted);
+
+  // Detail shortlist button state
+  const detailBtn = document.getElementById('detailShortlistBtn');
+  if (detailBtn) {
+    const propId = parseInt(detailBtn.dataset.propertyId);
+    const shortlist = JSON.parse(localStorage.getItem('km_shortlist') || '[]');
+    if (shortlist.includes(propId)) {
+      detailBtn.classList.add('saved');
+      detailBtn.querySelector('i').className = 'fa-solid fa-heart';
+      detailBtn.querySelector('span').textContent = 'Saved';
+    }
+  }
+});
+
+function updateDetailPriceConverted() {
+  const currency = localStorage.getItem('km_currency') || 'NGN';
+  // RATES and SYMBOLS are defined in main.js (loaded from /api/rates)
+  const priceEl = document.querySelector('.detail-price[data-price-ngn]');
+  const convertedEl = document.getElementById('priceConverted');
+  if (!priceEl || !convertedEl) return;
+  const ngn = parseFloat(priceEl.dataset.priceNgn);
+  const others = ['NGN','USD','GBP'].filter(c => c !== currency);
+  const parts = others.map(c => `≈ ${SYMBOLS[c]}${Math.round(ngn * RATES[c]).toLocaleString()}`);
+  convertedEl.textContent = parts.join(' · ');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ 'Edit' if agent else 'Add' }} Agent{% endblock %}
+{% block page_title %}{{ 'Edit' if agent else 'Add' }} Agent{% endblock %}
+
+{% block content %}
+<div class="admin-breadcrumb">
+  <a href="{{ url_for('admin.agents') }}">Agents</a> /
+  {{ 'Edit: ' + agent.name if agent else 'New Agent' }}
+</div>
+
+<form method="POST" enctype="multipart/form-data" class="admin-form"
+      action="{{ url_for('admin.agent_edit', agent_id=agent.id) if agent else url_for('admin.agent_new') }}">
+  {{ form.hidden_tag() }}
+
+  <div class="admin-card">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Full Name *</label>
+        {{ form.name(class="form-control", placeholder="e.g. Emeka Okonkwo") }}
+      </div>
+      <div class="form-group">
+        <label>Title / Role</label>
+        {{ form.title(class="form-control", placeholder="e.g. Senior Property Consultant") }}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Bio</label>
+      {{ form.bio(class="form-control", rows=5, placeholder="Brief professional biography…") }}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Phone</label>
+        {{ form.phone(class="form-control", placeholder="+234 800 000 0000") }}
+      </div>
+      <div class="form-group">
+        <label>WhatsApp Number</label>
+        {{ form.whatsapp(class="form-control", placeholder="2348000000000 (no + or spaces)") }}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      {{ form.email(class="form-control", placeholder="agent@kingmac.com") }}
+    </div>
+
+    <div class="form-group">
+      <label>Profile Photo</label>
+      {% if agent and agent.photo %}
+      {% set photo = agent.photo if agent.photo.startswith('http') else '/static/uploads/properties/' + agent.photo %}
+      <div class="agent-photo-preview">
+        <img src="{{ photo }}" alt="{{ agent.name }}" id="agentPhotoPreview">
+      </div>
+      {% else %}
+      <img id="agentPhotoPreview" style="display:none; width:100px; height:100px; border-radius:50%; object-fit:cover; margin-bottom:0.75rem;">
+      {% endif %}
+      {{ form.photo(class="form-control", id="agentPhotoInput", onchange="previewAgentPhoto(this)") }}
+      <small>Square images work best. Will be resized to 400×400px.</small>
+    </div>
+
+    <div class="admin-form-checks">
+      <label class="admin-check-label">
+        {{ form.is_active() }}
+        <span>Active (visible on site)</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="admin-form-footer">
+    <a href="{{ url_for('admin.agents') }}" class="btn btn--outline">Cancel</a>
+    <button type="submit" class="btn btn--gold btn--lg">
+      {{ 'Save Changes' if agent else 'Create Agent' }}
+    </button>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function previewAgentPhoto(input) {
+  const preview = document.getElementById('agentPhotoPreview');
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

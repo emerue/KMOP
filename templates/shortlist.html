@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}My Shortlist | KingMac of Property{% endblock %}
+{% block body_class %}page-shortlist{% endblock %}
+
+{% block content %}
+
+<section class="page-hero page-hero--light">
+  <div class="container">
+    <p class="section-tag">Your Selection</p>
+    <h1 class="page-hero__title page-hero__title--dark">Your Shortlist</h1>
+    <p class="page-hero__sub page-hero__sub--dark" id="shortlistSubtitle">Loading your saved properties…</p>
+  </div>
+</section>
+
+<section class="section shortlist-section" id="shortlistSection">
+  <div class="container">
+
+    <!-- Empty State -->
+    <div id="shortlistEmpty" class="shortlist-empty" style="display:none">
+      <i class="fa-regular fa-heart shortlist-empty__icon"></i>
+      <h2>Your shortlist is empty</h2>
+      <p>Browse properties and tap the heart icon to save them here.</p>
+      <a href="{{ url_for('main.listings') }}" class="btn btn--gold btn--lg">Browse Properties →</a>
+    </div>
+
+    <!-- Loading -->
+    <div id="shortlistLoading" class="shortlist-loading">
+      <div class="loading-spinner"></div>
+      <p>Loading your saved properties…</p>
+    </div>
+
+    <!-- Properties Grid -->
+    <div id="shortlistGrid" class="property-grid" style="display:none"></div>
+
+    <!-- WhatsApp CTA -->
+    <div id="shortlistCta" class="shortlist-cta" style="display:none">
+      <div class="shortlist-cta__inner">
+        <h3 class="shortlist-cta__title">Ready to move forward?</h3>
+        <p class="shortlist-cta__sub">Send your entire shortlist to an agent with one tap.</p>
+        <a href="#" id="shortlistWhatsappBtn" class="btn btn--whatsapp btn--lg" target="_blank" rel="noopener">
+          <i class="fa-brands fa-whatsapp"></i> Send All to Agent via WhatsApp
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const WHATSAPP_NUMBER = '{{ whatsapp_number }}';
+
+async function loadShortlist() {
+  const ids = JSON.parse(localStorage.getItem('km_shortlist') || '[]');
+  const loadingEl = document.getElementById('shortlistLoading');
+  const emptyEl = document.getElementById('shortlistEmpty');
+  const gridEl = document.getElementById('shortlistGrid');
+  const ctaEl = document.getElementById('shortlistCta');
+  const subtitle = document.getElementById('shortlistSubtitle');
+
+  if (ids.length === 0) {
+    loadingEl.style.display = 'none';
+    emptyEl.style.display = 'flex';
+    subtitle.textContent = '0 properties saved';
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/properties/batch?ids=${ids.join(',')}`);
+    const properties = await res.json();
+    loadingEl.style.display = 'none';
+
+    if (properties.length === 0) {
+      emptyEl.style.display = 'flex';
+      return;
+    }
+
+    subtitle.textContent = `${properties.length} propert${properties.length === 1 ? 'y' : 'ies'} saved`;
+
+    const RATES = { NGN: 1, USD: 0.00063, GBP: 0.00050 };
+    const SYMBOLS = { NGN: '₦', USD: '$', GBP: '£' };
+    const currency = localStorage.getItem('km_currency') || 'NGN';
+
+    gridEl.innerHTML = properties.map(p => {
+      const price = Math.round(p.price * RATES[currency]).toLocaleString();
+      const imgSrc = p.cover_image_url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80';
+      return `
+        <div class="property-card" id="shortlist-card-${p.id}" data-property-id="${p.id}">
+          <a href="/properties/${p.slug}" class="property-card__link">
+            <div class="property-card__image-wrap">
+              <img src="${imgSrc}" alt="${p.title}" class="property-card__image" loading="lazy">
+              <span class="property-card__badge property-card__badge--${p.listing_type.toLowerCase().replace(/ /g,'-')}">${p.listing_type}</span>
+              <button class="property-card__heart saved" onclick="removeFromShortlist(event, ${p.id})" aria-label="Remove from shortlist">
+                <i class="fa-solid fa-heart"></i>
+              </button>
+            </div>
+            <div class="property-card__info">
+              <div class="property-card__price-wrap">
+                <span class="property-card__price property-price" data-price-ngn="${p.price}">${SYMBOLS[currency]} ${price}</span>
+                ${p.price_period ? `<span class="property-card__period">${p.price_period}</span>` : ''}
+              </div>
+              <h3 class="property-card__title">${p.title}</h3>
+              <p class="property-card__location"><i class="fa-solid fa-location-dot"></i> ${p.city}</p>
+              <div class="property-card__meta">
+                ${p.bedrooms ? `<span><i class="fa-solid fa-bed"></i> ${p.bedrooms}</span>` : ''}
+                ${p.bathrooms ? `<span><i class="fa-solid fa-bath"></i> ${p.bathrooms}</span>` : ''}
+                ${p.area_sqm ? `<span><i class="fa-solid fa-ruler-combined"></i> ${p.area_sqm}sqm</span>` : ''}
+              </div>
+            </div>
+          </a>
+        </div>`;
+    }).join('');
+
+    gridEl.style.display = 'grid';
+    ctaEl.style.display = 'block';
+
+    // Build WhatsApp message
+    const msgLines = ['Hi KingMac, I\'m interested in the following properties:'];
+    properties.forEach((p, i) => {
+      msgLines.push(`${i + 1}. ${p.title} (${p.ref_code}) — ₦${p.price.toLocaleString()}`);
+    });
+    msgLines.push('\nPlease get in touch at your earliest convenience.');
+    const msg = encodeURIComponent(msgLines.join('\n'));
+    document.getElementById('shortlistWhatsappBtn').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+
+  } catch (err) {
+    loadingEl.style.display = 'none';
+    emptyEl.style.display = 'flex';
+  }
+}
+
+function removeFromShortlist(e, propId) {
+  e.preventDefault();
+  e.stopPropagation();
+  let shortlist = JSON.parse(localStorage.getItem('km_shortlist') || '[]');
+  shortlist = shortlist.filter(id => id !== propId);
+  localStorage.setItem('km_shortlist', JSON.stringify(shortlist));
+  document.dispatchEvent(new CustomEvent('shortlistChanged', { detail: shortlist }));
+
+  const card = document.getElementById(`shortlist-card-${propId}`);
+  if (card) {
+    card.style.transition = 'opacity 0.3s, transform 0.3s';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      card.remove();
+      const remaining = document.querySelectorAll('#shortlistGrid .property-card').length;
+      if (remaining === 0) {
+        document.getElementById('shortlistGrid').style.display = 'none';
+        document.getElementById('shortlistCta').style.display = 'none';
+        document.getElementById('shortlistEmpty').style.display = 'flex';
+      }
+      document.getElementById('shortlistSubtitle').textContent = `${remaining} propert${remaining === 1 ? 'y' : 'ies'} saved`;
+    }, 300);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadShortlist);
+</script>
+{% endblock %}

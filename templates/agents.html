@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Our Agents | KingMac of Property{% endblock %}
+{% block body_class %}page-agents{% endblock %}
+
+{% block content %}
+
+<section class="page-hero page-hero--dark">
+  <div class="container">
+    <p class="section-tag">The Experts</p>
+    <h1 class="page-hero__title">Meet Our Team</h1>
+    <p class="page-hero__sub">Seasoned professionals committed to finding you the perfect property.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="agents-grid agents-grid--large">
+      {% for agent in agents %}
+      {% set photo = agent.photo if agent.photo and agent.photo.startswith('http') else ('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80' if not agent.photo else '/static/uploads/properties/' + agent.photo) %}
+      <div class="agent-full-card animate-on-scroll" data-delay="{{ loop.index0 * 0.1 }}">
+        <div class="agent-full-card__photo">
+          <img src="{{ photo }}" alt="{{ agent.name }}" loading="lazy">
+        </div>
+        <div class="agent-full-card__body">
+          <h3 class="agent-full-card__name">{{ agent.name }}</h3>
+          <p class="agent-full-card__title">{{ agent.title }}</p>
+          {% if agent.bio %}
+          <p class="agent-full-card__bio">{{ agent.bio }}</p>
+          {% endif %}
+          <div class="agent-full-card__contact">
+            {% if agent.phone %}
+            <a href="tel:{{ agent.phone }}" class="btn btn--outline btn--sm">
+              <i class="fa-solid fa-phone"></i> {{ agent.phone }}
+            </a>
+            {% endif %}
+            {% if agent.whatsapp %}
+            <a href="https://wa.me/{{ agent.whatsapp }}?text=Hi%20{{ agent.name | urlencode }}%2C%20I%20found%20your%20profile%20on%20KingMac%20and%20I%27d%20like%20to%20discuss%20a%20property."
+               class="btn btn--whatsapp btn--sm" target="_blank" rel="noopener">
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp
+            </a>
+            {% endif %}
+            {% if agent.email %}
+            <a href="mailto:{{ agent.email }}" class="btn btn--outline btn--sm">
+              <i class="fa-solid fa-envelope"></i> Email
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="listings-empty">
+        <i class="fa-solid fa-users"></i>
+        <h3>No agents found</h3>
+        <p>Our team profiles are coming soon.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

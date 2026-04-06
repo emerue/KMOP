@@ -1,0 +1,97 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-stats-grid">
+  <div class="admin-stat-card">
+    <div class="admin-stat-card__icon"><i class="fa-solid fa-building"></i></div>
+    <div class="admin-stat-card__body">
+      <span class="admin-stat-card__value">{{ total_props }}</span>
+      <span class="admin-stat-card__label">Total Properties</span>
+    </div>
+  </div>
+  <div class="admin-stat-card admin-stat-card--green">
+    <div class="admin-stat-card__icon"><i class="fa-solid fa-eye"></i></div>
+    <div class="admin-stat-card__body">
+      <span class="admin-stat-card__value">{{ published_props }}</span>
+      <span class="admin-stat-card__label">Published</span>
+    </div>
+  </div>
+  <div class="admin-stat-card {% if unread_inquiries > 0 %}admin-stat-card--red{% endif %}">
+    <div class="admin-stat-card__icon"><i class="fa-solid fa-envelope"></i></div>
+    <div class="admin-stat-card__body">
+      <span class="admin-stat-card__value">{{ unread_inquiries }}</span>
+      <span class="admin-stat-card__label">Unread Inquiries</span>
+    </div>
+  </div>
+  <div class="admin-stat-card admin-stat-card--gold">
+    <div class="admin-stat-card__icon"><i class="fa-solid fa-bell"></i></div>
+    <div class="admin-stat-card__body">
+      <span class="admin-stat-card__value">{{ total_subscribers }}</span>
+      <span class="admin-stat-card__label">Subscribers</span>
+    </div>
+  </div>
+</div>
+
+<div class="admin-row">
+  <div class="admin-card admin-card--wide">
+    <div class="admin-card__header">
+      <h3>Recent Inquiries</h3>
+      <a href="{{ url_for('admin.inquiries') }}" class="admin-link">View All →</a>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Type</th>
+            <th>Property</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inq in recent_inquiries %}
+          <tr>
+            <td>{{ inq.name }}</td>
+            <td>{{ inq.email }}</td>
+            <td><span class="badge-type">{{ inq.inquiry_type }}</span></td>
+            <td>{% if inq.property %}<a href="{{ url_for('main.property_detail', slug=inq.property.slug) }}" target="_blank">{{ inq.property.title[:30] }}…</a>{% else %}—{% endif %}</td>
+            <td>{{ inq.created_at.strftime('%d %b %Y') }}</td>
+            <td>
+              {% if inq.is_read %}
+              <span class="status-badge status-badge--read">Read</span>
+              {% else %}
+              <span class="status-badge status-badge--unread">Unread</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="admin-table__empty">No inquiries yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card__header"><h3>Quick Actions</h3></div>
+    <div class="admin-quick-actions">
+      <a href="{{ url_for('admin.property_new') }}" class="btn btn--gold btn--full">
+        <i class="fa-solid fa-plus"></i> Add New Property
+      </a>
+      <a href="{{ url_for('admin.inquiries') }}" class="btn btn--outline btn--full">
+        <i class="fa-solid fa-envelope"></i> View Inquiries
+      </a>
+      <a href="{{ url_for('admin.agent_new') }}" class="btn btn--outline btn--full">
+        <i class="fa-solid fa-user-plus"></i> Add Agent
+      </a>
+      <a href="{{ url_for('main.index') }}" target="_blank" class="btn btn--outline btn--full">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> View Live Site
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

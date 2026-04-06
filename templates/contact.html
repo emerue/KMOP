@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Contact Us | KingMac of Property{% endblock %}
+{% block body_class %}page-contact{% endblock %}
+
+{% block content %}
+
+<section class="page-hero page-hero--dark">
+  <div class="container">
+    <p class="section-tag">Reach Out</p>
+    <h1 class="page-hero__title">Let's Start a Conversation</h1>
+    <p class="page-hero__sub">Our team is ready to guide you. No hard sell — just expert advice.</p>
+  </div>
+</section>
+
+<section class="section contact-section">
+  <div class="container">
+    <div class="contact-grid">
+      <!-- Left -->
+      <div class="contact-info animate-on-scroll">
+        <h2 class="section-title">Get in Touch</h2>
+        <ul class="contact-info__list">
+          <li>
+            <div class="contact-info__icon"><i class="fa-solid fa-location-dot"></i></div>
+            <div>
+              <strong>Office Address</strong>
+              <p>14 Marina Road, Victoria Island, Lagos, Nigeria</p>
+            </div>
+          </li>
+          <li>
+            <div class="contact-info__icon"><i class="fa-solid fa-phone"></i></div>
+            <div>
+              <strong>Phone</strong>
+              <p><a href="tel:+2348000000000">+234 800 000 0000</a></p>
+            </div>
+          </li>
+          <li>
+            <div class="contact-info__icon"><i class="fa-solid fa-envelope"></i></div>
+            <div>
+              <strong>Email</strong>
+              <p><a href="mailto:info@kingmacproperty.com">info@kingmacproperty.com</a></p>
+            </div>
+          </li>
+          <li>
+            <div class="contact-info__icon"><i class="fa-solid fa-clock"></i></div>
+            <div>
+              <strong>Office Hours</strong>
+              <p>Monday – Friday: 8:00am – 6:00pm<br>Saturday: 9:00am – 2:00pm</p>
+            </div>
+          </li>
+        </ul>
+        <div class="contact-info__social">
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="https://wa.me/2348000000000" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+
+      <!-- Right — Form -->
+      <div class="contact-form-wrap animate-on-scroll" data-delay="0.15">
+        <form class="contact-form" action="{{ url_for('main.contact_submit') }}" method="POST">
+          {{ form.hidden_tag() }}
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name *</label>
+              {{ form.name(class="form-control", placeholder="Your full name") }}
+            </div>
+            <div class="form-group">
+              <label>Email Address *</label>
+              {{ form.email(class="form-control", placeholder="your@email.com") }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Phone Number</label>
+              {{ form.phone(class="form-control", placeholder="+234 800 000 0000") }}
+            </div>
+            <div class="form-group">
+              <label>Subject *</label>
+              {{ form.subject(class="form-control", placeholder="How can we help?") }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Message *</label>
+            {{ form.message(class="form-control", rows=6, placeholder="Tell us what you're looking for…") }}
+          </div>
+          <button type="submit" class="btn btn--gold btn--full btn--lg">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAP -->
+<div id="contactMap" class="contact-map leaflet-map" data-lat="6.4281" data-lng="3.4219" data-title="KingMac of Property HQ"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const mapEl = document.getElementById('contactMap');
+  if (mapEl && typeof L !== 'undefined') {
+    const lat = parseFloat(mapEl.dataset.lat);
+    const lng = parseFloat(mapEl.dataset.lng);
+    const map = L.map('contactMap', { scrollWheelZoom: false }).setView([lat, lng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    const icon = L.divIcon({
+      className: 'custom-marker',
+      html: '<div class="map-marker"><i class="fa-solid fa-location-dot"></i></div>',
+      iconSize: [40, 40], iconAnchor: [20, 40]
+    });
+    L.marker([lat, lng], { icon }).addTo(map).bindPopup('<strong>KingMac of Property</strong><br>Victoria Island, Lagos').openPopup();
+  }
+});
+</script>
+{% endblock %}

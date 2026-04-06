@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}KingMac of Property — Your Crown. Your Property.{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}KingMac of Property — Nigeria's premium real estate firm. Find luxury properties for sale and rent across Lagos, Abuja, Port Harcourt and beyond.{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}KingMac of Property{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Premium real estate across Nigeria's finest addresses.{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}https://images.unsplash.com/photo-1613977257363-707ba9348227?w=1200&q=85{% endblock %}">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+
+  <!-- CDN Styles -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/splidejs/4.1.4/css/splide.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}" x-data="{ mobileMenuOpen: false }">
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar" x-data="{ mobileOpen: false }">
+    <div class="navbar__inner">
+      <a href="{{ url_for('main.index') }}" class="navbar__logo">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KingMac of Property"
+           width="160" height="52" style="width:160px;height:52px;object-fit:contain;">
+      </a>
+
+      <ul class="navbar__links">
+        <li><a href="{{ url_for('main.listings') }}" class="navbar__link {% if request.endpoint == 'main.listings' %}active{% endif %}">Properties</a></li>
+        <li><a href="{{ url_for('main.valuation') }}" class="navbar__link {% if request.endpoint == 'main.valuation' %}active{% endif %}">Valuation</a></li>
+        <li><a href="{{ url_for('main.about') }}" class="navbar__link {% if request.endpoint == 'main.about' %}active{% endif %}">About</a></li>
+        <li><a href="{{ url_for('main.agents') }}" class="navbar__link {% if request.endpoint == 'main.agents' %}active{% endif %}">Agents</a></li>
+        <li><a href="{{ url_for('main.contact') }}" class="navbar__link {% if request.endpoint == 'main.contact' %}active{% endif %}">Contact</a></li>
+      </ul>
+
+      <div class="navbar__actions">
+        <!-- Currency Toggle -->
+        <div class="currency-toggle" x-data="currencyToggle()">
+          <button @click="setCurrency('NGN')" :class="{ active: currency === 'NGN' }">₦</button>
+          <button @click="setCurrency('USD')" :class="{ active: currency === 'USD' }">$</button>
+          <button @click="setCurrency('GBP')" :class="{ active: currency === 'GBP' }">£</button>
+        </div>
+
+        <!-- Shortlist -->
+        <a href="{{ url_for('main.shortlist') }}" class="shortlist-btn" id="shortlistNavBtn">
+          <i class="fa-solid fa-heart"></i>
+          <span class="shortlist-badge" id="shortlistBadge" style="display:none">0</span>
+        </a>
+
+        <a href="{{ url_for('main.contact') }}" class="btn btn--outline btn--sm">Get in Touch</a>
+
+        <!-- Hamburger -->
+        <button class="hamburger" @click="mobileOpen = !mobileOpen" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" :class="{ open: mobileOpen }" @click.self="mobileOpen = false">
+      <button class="mobile-menu__close" @click="mobileOpen = false"><i class="fa-solid fa-xmark"></i></button>
+      <nav class="mobile-menu__nav">
+        <a href="{{ url_for('main.listings') }}" @click="mobileOpen = false">Properties</a>
+        <a href="{{ url_for('main.valuation') }}" @click="mobileOpen = false">Valuation</a>
+        <a href="{{ url_for('main.about') }}" @click="mobileOpen = false">About</a>
+        <a href="{{ url_for('main.agents') }}" @click="mobileOpen = false">Agents</a>
+        <a href="{{ url_for('main.contact') }}" @click="mobileOpen = false">Contact</a>
+        <div class="mobile-menu__currency" x-data="currencyToggle()">
+          <button @click="setCurrency('NGN')" :class="{ active: currency === 'NGN' }">₦ NGN</button>
+          <button @click="setCurrency('USD')" :class="{ active: currency === 'USD' }">$ USD</button>
+          <button @click="setCurrency('GBP')" :class="{ active: currency === 'GBP' }">£ GBP</button>
+        </div>
+      </nav>
+    </div>
+  </nav>
+
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash--{{ category }}">
+            <span>{{ message }}</span>
+            <button onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- MAIN CONTENT -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <!-- Newsletter Bar -->
+    <div class="footer__newsletter">
+      <div class="container">
+        <div class="footer__newsletter-inner">
+          <div>
+            <p class="footer__newsletter-label">Stay Informed</p>
+            <h3 class="footer__newsletter-title">Premium listings. Market insights. Direct to your inbox.</h3>
+          </div>
+          <form class="footer__newsletter-form" id="newsletterForm">
+            <input type="email" placeholder="Your email address" required>
+            <button type="submit" class="btn btn--gold">Subscribe</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__main">
+      <div class="container">
+        <div class="footer__grid">
+          <div class="footer__col footer__col--brand">
+            <a href="{{ url_for('main.index') }}">
+              <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KingMac"
+                   width="160" height="48" style="width:160px;height:48px;object-fit:contain;">
+            </a>
+            <p class="footer__tagline">Your Crown. Your Property.</p>
+            <p class="footer__desc">Nigeria's premier real estate firm connecting discerning buyers with exceptional properties across Lagos, Abuja, Port Harcourt and beyond.</p>
+            <div class="footer__social">
+              <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+              <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+              <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+              <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+            </div>
+          </div>
+
+          <div class="footer__col">
+            <h4 class="footer__col-title">Quick Links</h4>
+            <ul>
+              <li><a href="{{ url_for('main.index') }}">Home</a></li>
+              <li><a href="{{ url_for('main.listings') }}">Properties</a></li>
+              <li><a href="{{ url_for('main.valuation') }}">Valuation</a></li>
+              <li><a href="{{ url_for('main.about') }}">About Us</a></li>
+              <li><a href="{{ url_for('main.agents') }}">Our Agents</a></li>
+              <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+            </ul>
+          </div>
+
+          <div class="footer__col">
+            <h4 class="footer__col-title">Property Types</h4>
+            <ul>
+              <li><a href="{{ url_for('main.listings', type='Apartment') }}">Apartments</a></li>
+              <li><a href="{{ url_for('main.listings', type='Duplex') }}">Duplexes</a></li>
+              <li><a href="{{ url_for('main.listings', type='Detached') }}">Detached Houses</a></li>
+              <li><a href="{{ url_for('main.listings', type='Land') }}">Land</a></li>
+              <li><a href="{{ url_for('main.listings', type='Commercial') }}">Commercial</a></li>
+              <li><a href="{{ url_for('main.listings', listing='Short Let') }}">Short Let</a></li>
+            </ul>
+          </div>
+
+          <div class="footer__col">
+            <h4 class="footer__col-title">Contact Us</h4>
+            <ul class="footer__contact">
+              <li><i class="fa-solid fa-location-dot"></i> 14 Marina Road, Victoria Island, Lagos, Nigeria</li>
+              <li><i class="fa-solid fa-phone"></i> <a href="tel:+2348000000000">+234 800 000 0000</a></li>
+              <li><i class="fa-solid fa-envelope"></i> <a href="mailto:info@kingmacproperty.com">info@kingmacproperty.com</a></li>
+              <li><i class="fa-solid fa-clock"></i> Mon–Fri: 8am – 6pm</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <div class="container">
+        <p>&copy; {{ now.year if now else '2026' }} KingMac of Property. All rights reserved.</p>
+        <p>Built with precision &amp; purpose.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- WHATSAPP BUBBLE -->
+  <a href="https://wa.me/2348000000000?text=Hello%2C%20I%20found%20KingMac%27s%20website%20and%20would%20like%20to%20enquire%20about%20a%20property."
+     class="whatsapp-bubble" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+    <span class="whatsapp-bubble__tooltip">Chat with us</span>
+  </a>
+
+  <!-- CDN Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/splidejs/4.1.4/js/splide.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.2/cdn.min.js"></script>
+
+  <!-- Custom JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,142 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Properties{% endblock %}
+{% block page_title %}Properties{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+  <div class="admin-toolbar__left">
+    <input type="text" id="propSearch" placeholder="Search by title or city…" class="admin-search-input" oninput="filterPropertiesTable(this.value)">
+  </div>
+  <a href="{{ url_for('admin.property_new') }}" class="btn btn--gold">
+    <i class="fa-solid fa-plus"></i> Add Property
+  </a>
+</div>
+
+<div class="admin-card">
+  <div class="admin-table-wrap">
+    <table class="admin-table" id="propertiesTable">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Ref</th>
+          <th>Title</th>
+          <th>City</th>
+          <th>Type</th>
+          <th>Price</th>
+          <th>Published</th>
+          <th>Featured</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prop in properties %}
+        {% set cover = prop.cover_image %}
+        {% if cover %}
+          {% set img_src = cover.filename if cover.filename.startswith('http') else '/static/uploads/properties/' + cover.filename %}
+        {% else %}
+          {% set img_src = None %}
+        {% endif %}
+        <tr data-title="{{ prop.title | lower }}" data-city="{{ prop.city | lower }}">
+          <td>
+            {% if img_src %}
+            <img src="{{ img_src }}" alt="" class="admin-thumb" loading="lazy">
+            {% else %}
+            <div class="admin-thumb admin-thumb--empty"><i class="fa-solid fa-image"></i></div>
+            {% endif %}
+          </td>
+          <td><span class="prop-ref">{{ prop.ref_code }}</span></td>
+          <td><strong>{{ prop.title[:45] }}{% if prop.title|length > 45 %}…{% endif %}</strong></td>
+          <td>{{ prop.city }}</td>
+          <td>{{ prop.property_type }}</td>
+          <td>{{ prop.price | naira }}</td>
+          <td>
+            <button class="admin-toggle {% if prop.is_published %}active{% endif %}"
+                    onclick="toggleProperty({{ prop.id }}, 'publish', this)"
+                    title="{{ 'Published' if prop.is_published else 'Unpublished' }}">
+              <i class="fa-solid fa-eye{% if not prop.is_published %}-slash{% endif %}"></i>
+            </button>
+          </td>
+          <td>
+            <button class="admin-toggle {% if prop.is_featured %}active{% endif %}"
+                    onclick="toggleProperty({{ prop.id }}, 'featured', this)"
+                    title="{{ 'Featured' if prop.is_featured else 'Not Featured' }}">
+              <i class="fa-solid fa-star"></i>
+            </button>
+          </td>
+          <td class="admin-table__actions">
+            <a href="{{ url_for('admin.property_edit', property_id=prop.id) }}" class="admin-action-btn" title="Edit">
+              <i class="fa-solid fa-pen"></i>
+            </a>
+            <a href="{{ url_for('admin.property_media', property_id=prop.id) }}" class="admin-action-btn" title="Manage Images">
+              <i class="fa-solid fa-images"></i>
+            </a>
+            <button class="admin-action-btn admin-action-btn--danger" title="Delete"
+                    onclick="confirmDelete('{{ url_for('admin.property_delete', property_id=prop.id) }}', '{{ prop.title }}')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="admin-table__empty">No properties yet. <a href="{{ url_for('admin.property_new') }}">Add one →</a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="admin-modal" id="deleteModal">
+  <div class="admin-modal__card">
+    <h3>Confirm Delete</h3>
+    <p id="deleteModalText">Are you sure you want to delete this property?</p>
+    <div class="admin-modal__actions">
+      <button class="btn btn--outline" onclick="document.getElementById('deleteModal').style.display='none'">Cancel</button>
+      <form id="deleteForm" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn--danger">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterPropertiesTable(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#propertiesTable tbody tr[data-title]').forEach(row => {
+    const title = row.dataset.title || '';
+    const city = row.dataset.city || '';
+    row.style.display = (title.includes(q) || city.includes(q)) ? '' : 'none';
+  });
+}
+
+function toggleProperty(id, type, btn) {
+  const endpoint = type === 'publish'
+    ? `/admin/properties/${id}/toggle-publish`
+    : `/admin/properties/${id}/toggle-featured`;
+
+  fetch(endpoint, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token() }}', 'Content-Type': 'application/json' }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const isActive = data.published !== undefined ? data.published : data.featured;
+    btn.classList.toggle('active', isActive);
+    if (type === 'publish') {
+      btn.querySelector('i').className = isActive ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+      btn.title = isActive ? 'Published' : 'Unpublished';
+    } else {
+      btn.title = isActive ? 'Featured' : 'Not Featured';
+    }
+  });
+}
+
+function confirmDelete(url, title) {
+  document.getElementById('deleteModalText').textContent = `Delete "${title}"? This cannot be undone.`;
+  document.getElementById('deleteForm').action = url;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+</script>
+{% endblock %}

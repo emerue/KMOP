@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}About Us | KingMac of Property{% endblock %}
+{% block body_class %}page-about{% endblock %}
+
+{% block content %}
+
+<section class="page-hero page-hero--dark">
+  <div class="container">
+    <p class="section-tag">Our Story</p>
+    <h1 class="page-hero__title">Built on Trust.<br>Defined by Excellence.</h1>
+  </div>
+</section>
+
+<!-- STORY -->
+<section class="section about-story">
+  <div class="container">
+    <div class="about-story__grid">
+      <div class="about-story__text animate-on-scroll">
+        <p class="section-tag">Who We Are</p>
+        <h2 class="section-title">A Decade of Premium Real Estate</h2>
+        <div class="about-story__divider"></div>
+        <p>KingMac of Property was founded on a simple belief — that every Nigerian deserves access to exceptional real estate. With over a decade of experience spanning Lagos, Abuja, Port Harcourt and beyond, we have built a reputation for integrity, expertise, and results that speak for themselves.</p>
+        <p>From luxury penthouses in Ikoyi to prime commercial developments in Victoria Island, our portfolio reflects the full breadth of Nigeria's thriving property market. We serve discerning buyers, astute investors, and the Nigerian diaspora who trust us to manage their most important investments.</p>
+      </div>
+      <div class="about-story__image animate-on-scroll" data-delay="0.2">
+        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85" alt="KingMac Office" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-bar stats-bar--dark">
+  <div class="container">
+    <div class="stats-bar__grid">
+      <div class="stats-bar__item animate-on-scroll">
+        <span class="stats-bar__number">500<span>+</span></span>
+        <span class="stats-bar__label">Properties Listed</span>
+      </div>
+      <div class="stats-bar__item animate-on-scroll" data-delay="0.1">
+        <span class="stats-bar__number">12</span>
+        <span class="stats-bar__label">Years of Excellence</span>
+      </div>
+      <div class="stats-bar__item animate-on-scroll" data-delay="0.2">
+        <span class="stats-bar__number">20<span>+</span></span>
+        <span class="stats-bar__label">Expert Agents</span>
+      </div>
+      <div class="stats-bar__item animate-on-scroll" data-delay="0.3">
+        <span class="stats-bar__number">98<span>%</span></span>
+        <span class="stats-bar__label">Client Satisfaction</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSION & VALUES -->
+<section class="section section--light">
+  <div class="container">
+    <div class="section-header section-header--center">
+      <p class="section-tag animate-on-scroll">Our Foundation</p>
+      <h2 class="section-title animate-on-scroll" data-delay="0.1">Mission, Vision & Values</h2>
+    </div>
+    <div class="values-grid">
+      <div class="value-card animate-on-scroll" data-delay="0">
+        <div class="value-card__top-border"></div>
+        <i class="fa-solid fa-bullseye value-card__icon"></i>
+        <h3>Our Mission</h3>
+        <p>To connect every Nigerian with exceptional real estate opportunities through integrity, expertise, and an unwavering commitment to client satisfaction.</p>
+      </div>
+      <div class="value-card animate-on-scroll" data-delay="0.12">
+        <div class="value-card__top-border"></div>
+        <i class="fa-solid fa-eye value-card__icon"></i>
+        <h3>Our Vision</h3>
+        <p>To be Nigeria's most trusted and prestigious real estate brand — the first name that comes to mind for every property transaction, from Lekki to Maitama.</p>
+      </div>
+      <div class="value-card animate-on-scroll" data-delay="0.24">
+        <div class="value-card__top-border"></div>
+        <i class="fa-solid fa-gem value-card__icon"></i>
+        <h3>Our Values</h3>
+        <p>Integrity in every transaction. Excellence in every detail. Relationships built for life. We do not cut corners — ever.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENTS -->
+{% if agents %}
+<section class="section agents-section">
+  <div class="container">
+    <div class="section-header section-header--center">
+      <p class="section-tag animate-on-scroll">The Team</p>
+      <h2 class="section-title animate-on-scroll" data-delay="0.1">Meet Our Agents</h2>
+    </div>
+    <div class="agents-grid">
+      {% for agent in agents %}
+      {% set photo = agent.photo if agent.photo and agent.photo.startswith('http') else ('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80' if not agent.photo else '/static/uploads/properties/' + agent.photo) %}
+      <div class="agent-profile-card animate-on-scroll" data-delay="{{ loop.index0 * 0.1 }}">
+        <div class="agent-profile-card__photo">
+          <img src="{{ photo }}" alt="{{ agent.name }}" loading="lazy">
+        </div>
+        <h3 class="agent-profile-card__name">{{ agent.name }}</h3>
+        <p class="agent-profile-card__title">{{ agent.title }}</p>
+        {% if agent.bio %}<p class="agent-profile-card__bio">{{ agent.bio[:120] }}…</p>{% endif %}
+        <div class="agent-profile-card__icons">
+          {% if agent.phone %}<a href="tel:{{ agent.phone }}" aria-label="Call"><i class="fa-solid fa-phone"></i></a>{% endif %}
+          {% if agent.email %}<a href="mailto:{{ agent.email }}" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>{% endif %}
+          {% if agent.whatsapp %}<a href="https://wa.me/{{ agent.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

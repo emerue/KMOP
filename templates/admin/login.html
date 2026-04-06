@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | KingMac of Property</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin-login-page">
+  <div class="admin-login">
+    <div class="admin-login__card">
+      <div class="admin-login__logo">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="KingMac"
+             width="180" height="60" style="width:180px;height:60px;object-fit:contain;">
+      </div>
+      <h1 class="admin-login__title">Admin Login</h1>
+      <p class="admin-login__sub">Sign in to manage your property portfolio</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+          <div class="admin-alert admin-alert--{{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('auth.login') }}" class="admin-login__form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+          <label><i class="fa-solid fa-user"></i> Username</label>
+          <input type="text" name="username" required class="form-control" placeholder="admin" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label><i class="fa-solid fa-lock"></i> Password</label>
+          <input type="password" name="password" required class="form-control" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn--gold btn--full">Sign In</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Explore Properties | KingMac of Property{% endblock %}
+{% block body_class %}page-listings{% endblock %}
+
+{% block content %}
+
+<section class="page-hero page-hero--dark">
+  <div class="container">
+    <p class="section-tag">Our Portfolio</p>
+    <h1 class="page-hero__title">Explore Our Properties</h1>
+    <p class="page-hero__sub">{{ pagination.total }} properties available across Nigeria</p>
+  </div>
+</section>
+
+<section class="listings-section">
+  <div class="container">
+    <div class="listings-layout">
+
+      <!-- FILTER SIDEBAR -->
+      <aside class="filter-sidebar" x-data="{ filtersOpen: false }">
+        <button class="filter-sidebar__toggle" @click="filtersOpen = !filtersOpen">
+          <i class="fa-solid fa-sliders"></i> Filters
+          <i class="fa-solid fa-chevron-down" :class="{ 'rotated': filtersOpen }"></i>
+        </button>
+        <form class="filter-sidebar__form" id="filterForm" action="{{ url_for('main.listings') }}" method="GET">
+          <div class="filter-group" x-data="{ open: true }">
+            <button type="button" class="filter-group__toggle" @click="open = !open">
+              Location <i class="fa-solid fa-chevron-down" :class="{ 'rotated': !open }"></i>
+            </button>
+            <div class="filter-group__body" x-show="open" x-transition>
+              {% set city_list = ['Lagos','Abuja','Port Harcourt','Ibadan','Kano','Benin City','Enugu','Warri','Asaba','Owerri','Uyo'] %}
+              {% for city in city_list %}
+              <label class="filter-checkbox">
+                <input type="radio" name="city" value="{{ city }}" {% if current_city == city %}checked{% endif %}>
+                <span>{{ city }}</span>
+              </label>
+              {% endfor %}
+              <label class="filter-checkbox">
+                <input type="radio" name="city" value="" {% if not current_city %}checked{% endif %}>
+                <span>All Cities</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="filter-group" x-data="{ open: true }">
+            <button type="button" class="filter-group__toggle" @click="open = !open">
+              Property Type <i class="fa-solid fa-chevron-down" :class="{ 'rotated': !open }"></i>
+            </button>
+            <div class="filter-group__body" x-show="open" x-transition>
+              {% for pt in ['Apartment','Duplex','Terrace','Detached','Semi-Detached','Land','Commercial','Penthouse'] %}
+              <label class="filter-checkbox">
+                <input type="checkbox" name="type" value="{{ pt }}" {% if current_type == pt %}checked{% endif %}>
+                <span>{{ pt }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="filter-group" x-data="{ open: true }">
+            <button type="button" class="filter-group__toggle" @click="open = !open">
+              Listing Type <i class="fa-solid fa-chevron-down" :class="{ 'rotated': !open }"></i>
+            </button>
+            <div class="filter-group__body" x-show="open" x-transition>
+              {% for lt in ['For Sale','For Rent','Short Let'] %}
+              <label class="filter-checkbox">
+                <input type="radio" name="listing" value="{{ lt }}" {% if current_listing == lt %}checked{% endif %}>
+                <span>{{ lt }}</span>
+              </label>
+              {% endfor %}
+              <label class="filter-checkbox">
+                <input type="radio" name="listing" value="" {% if not current_listing %}checked{% endif %}>
+                <span>All Types</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="filter-group" x-data="{ open: true }">
+            <button type="button" class="filter-group__toggle" @click="open = !open">
+              Bedrooms <i class="fa-solid fa-chevron-down" :class="{ 'rotated': !open }"></i>
+            </button>
+            <div class="filter-group__body" x-show="open" x-transition>
+              {% for b in ['1','2','3','4','5'] %}
+              <label class="filter-checkbox">
+                <input type="radio" name="bedrooms" value="{{ b }}" {% if current_bedrooms == b %}checked{% endif %}>
+                <span>{{ b }}{% if b == '5' %}+{% endif %} Bedroom{% if b != '1' %}s{% endif %}</span>
+              </label>
+              {% endfor %}
+              <label class="filter-checkbox">
+                <input type="radio" name="bedrooms" value="" {% if not current_bedrooms %}checked{% endif %}>
+                <span>Any</span>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn--gold btn--full">Apply Filters</button>
+          <a href="{{ url_for('main.listings') }}" class="filter-sidebar__clear">Clear All</a>
+        </form>
+      </aside>
+
+      <!-- PROPERTY GRID -->
+      <div class="listings-content">
+        <div class="listings-toolbar">
+          <p class="listings-count">{{ pagination.total }} properties found</p>
+          <div class="listings-sort">
+            <label>Sort by:</label>
+            <select id="sortSelect" onchange="applySortFilter(this.value)">
+              <option value="latest" {% if current_sort == 'latest' %}selected{% endif %}>Latest</option>
+              <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low–High</option>
+              <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High–Low</option>
+              <option value="most_viewed" {% if current_sort == 'most_viewed' %}selected{% endif %}>Most Viewed</option>
+            </select>
+          </div>
+        </div>
+
+        {% if properties %}
+        <div class="property-grid" id="propertyGrid">
+          {% for prop in properties %}
+          {% set cover = prop.cover_image %}
+          {% if cover %}
+            {% set img_src = cover.filename if cover.filename.startswith('http') else '/static/uploads/properties/' + cover.filename %}
+          {% else %}
+            {% set img_src = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80' %}
+          {% endif %}
+          <div class="property-card animate-on-scroll" data-delay="{{ loop.index0 * 0.05 }}">
+            <a href="{{ url_for('main.property_detail', slug=prop.slug) }}" class="property-card__link">
+              <div class="property-card__image-wrap">
+                <img src="{{ img_src }}" alt="{{ prop.title }}" class="property-card__image" loading="lazy">
+                <span class="property-card__badge property-card__badge--{{ prop.listing_type | lower | replace(' ', '-') }}">{{ prop.listing_type }}</span>
+                <button class="property-card__heart" data-property-id="{{ prop.id }}" onclick="toggleShortlist(event, {{ prop.id }})" aria-label="Save">
+                  <i class="fa-regular fa-heart"></i>
+                </button>
+              </div>
+              <div class="property-card__info">
+                <div class="property-card__price-wrap">
+                  <span class="property-card__price property-price" data-price-ngn="{{ prop.price }}">{{ prop.price | naira }}</span>
+                  {% if prop.price_period %}<span class="property-card__period">{{ prop.price_period }}</span>{% endif %}
+                </div>
+                <h3 class="property-card__title">{{ prop.title }}</h3>
+                <p class="property-card__location"><i class="fa-solid fa-location-dot"></i> {{ prop.city }}{% if prop.state %}, {{ prop.state }}{% endif %}</p>
+                <div class="property-card__meta">
+                  {% if prop.bedrooms %}<span><i class="fa-solid fa-bed"></i> {{ prop.bedrooms }}</span>{% endif %}
+                  {% if prop.bathrooms %}<span><i class="fa-solid fa-bath"></i> {{ prop.bathrooms }}</span>{% endif %}
+                  {% if prop.area_sqm %}<span><i class="fa-solid fa-ruler-combined"></i> {{ prop.area_sqm }}sqm</span>{% endif %}
+                </div>
+              </div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- PAGINATION -->
+        {% if pagination.pages > 1 %}
+        <nav class="pagination">
+          {% if pagination.has_prev %}
+          <a href="{{ url_for('main.listings', page=pagination.prev_num, city=current_city, type=current_type, listing=current_listing, sort=current_sort) }}" class="pagination__btn">
+            <i class="fa-solid fa-chevron-left"></i>
+          </a>
+          {% endif %}
+          {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <a href="{{ url_for('main.listings', page=p, city=current_city, type=current_type, listing=current_listing, sort=current_sort) }}"
+               class="pagination__page {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+            {% else %}
+            <span class="pagination__ellipsis">…</span>
+            {% endif %}
+          {% endfor %}
+          {% if pagination.has_next %}
+          <a href="{{ url_for('main.listings', page=pagination.next_num, city=current_city, type=current_type, listing=current_listing, sort=current_sort) }}" class="pagination__btn">
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          {% endif %}
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="listings-empty">
+          <i class="fa-regular fa-building"></i>
+          <h3>No properties found</h3>
+          <p>Try adjusting your filters or browse all listings.</p>
+          <a href="{{ url_for('main.listings') }}" class="btn btn--gold">Clear Filters</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function applySortFilter(val) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('sort', val);
+  url.searchParams.delete('page');
+  window.location.href = url.toString();
+}
+</script>
+{% endblock %}

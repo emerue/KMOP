@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/pip install:*)",
+      "Bash(.venv/Scripts/python.exe -m pip install -r requirements.txt)",
+      "Bash(.venv/Scripts/python.exe -c \"import flask; print\\('Flask OK:', flask.__version__\\)\")",
+      "Bash(.venv/Scripts/pip.exe install:*)",
+      "Bash(FLASK_APP=run.py .venv/Scripts/flask.exe db init)",
+      "Bash(FLASK_APP=run.py .venv/Scripts/flask.exe seed-db)",
+      "Bash(.venv/Scripts/python.exe -c ':*)"
+    ]
+  }
+}

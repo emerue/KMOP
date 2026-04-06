@@ -1,0 +1,65 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Agents{% endblock %}
+{% block page_title %}Agents{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+  <div></div>
+  <a href="{{ url_for('admin.agent_new') }}" class="btn btn--gold">
+    <i class="fa-solid fa-plus"></i> Add Agent
+  </a>
+</div>
+
+<div class="admin-card">
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Name</th>
+          <th>Title</th>
+          <th>Phone</th>
+          <th>Active</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for agent in agents %}
+        {% set photo = agent.photo if agent.photo and agent.photo.startswith('http') else ('/static/uploads/properties/' + agent.photo if agent.photo else None) %}
+        <tr>
+          <td>
+            {% if photo %}
+            <img src="{{ photo }}" alt="{{ agent.name }}" class="admin-thumb admin-thumb--circle" loading="lazy">
+            {% else %}
+            <div class="admin-thumb admin-thumb--circle admin-thumb--empty"><i class="fa-solid fa-user"></i></div>
+            {% endif %}
+          </td>
+          <td><strong>{{ agent.name }}</strong></td>
+          <td>{{ agent.title or '—' }}</td>
+          <td>{{ agent.phone or '—' }}</td>
+          <td>
+            <span class="status-badge {% if agent.is_active %}status-badge--read{% else %}status-badge--unread{% endif %}">
+              {{ 'Active' if agent.is_active else 'Inactive' }}
+            </span>
+          </td>
+          <td class="admin-table__actions">
+            <a href="{{ url_for('admin.agent_edit', agent_id=agent.id) }}" class="admin-action-btn" title="Edit">
+              <i class="fa-solid fa-pen"></i>
+            </a>
+            <form method="POST" action="{{ url_for('admin.agent_delete', agent_id=agent.id) }}" style="display:inline"
+                  onsubmit="return confirm('Delete {{ agent.name }}?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="admin-action-btn admin-action-btn--danger" title="Delete">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="admin-table__empty">No agents yet. <a href="{{ url_for('admin.agent_new') }}">Add one →</a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

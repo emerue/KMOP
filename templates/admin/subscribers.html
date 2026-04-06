@@ -1,0 +1,37 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Newsletter Subscribers{% endblock %}
+{% block page_title %}Newsletter Subscribers{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+  <p class="admin-toolbar__count">{{ subscribers|length }} subscriber{{ 's' if subscribers|length != 1 }}</p>
+  <a href="{{ url_for('admin.subscribers_export') }}" class="btn btn--outline">
+    <i class="fa-solid fa-download"></i> Export CSV
+  </a>
+</div>
+
+<div class="admin-card">
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Email Address</th>
+          <th>Signup Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub in subscribers %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ sub.email }}</td>
+          <td>{{ sub.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="admin-table__empty">No subscribers yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
