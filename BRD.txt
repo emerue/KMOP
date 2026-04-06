@@ -1,0 +1,270 @@
+================================================================================
+KINGMAC OF PROPERTY — BUSINESS REQUIREMENTS DOCUMENT (BRD v2.0)
+================================================================================
+Project:    KingMac of Property Corporate Website
+Tagline:    "Your Crown. Your Property."
+Stack:      Python 3.11+ / Flask 3.x, SQLAlchemy, SQLite (dev) / PostgreSQL (prod)
+Repo:       https://github.com/emerue/KMOP
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+1. PROJECT OVERVIEW
+────────────────────────────────────────────────────────────────────────────────
+
+KingMac of Property is a premium Nigerian real estate firm. This website serves
+as the company's primary digital presence, covering property listings, agent
+profiles, lead generation, and backend management.
+
+Markets served: Lagos, Abuja, Port Harcourt, Ibadan, Kano, Enugu, and beyond.
+Target audience: Luxury buyers, investors, Nigerian diaspora (UK/US).
+
+
+────────────────────────────────────────────────────────────────────────────────
+2. FUNCTIONAL REQUIREMENTS
+────────────────────────────────────────────────────────────────────────────────
+
+2.1 PUBLIC-FACING PAGES
+------------------------
+Page                URL                 Description
+---------------------------------------------------------------------------
+Home                /                   Hero, stats bar, search, featured
+                                        properties, why-us, valuation teaser,
+                                        shortlist teaser, testimonials, CTA
+Properties          /properties         Filterable, sortable property grid
+                                        with pagination
+Property Detail     /properties/<slug>  Full detail: gallery, specs, map,
+                                        agent card, inquiry form, shortlist,
+                                        similar properties
+Valuation           /valuation          Instant price estimate form (AJAX)
+About               /about              Story, stats, mission/vision, agents
+Agents              /agents             Agent grid with contact links
+Contact             /contact            Contact form + map
+Shortlist           /shortlist          Client-side saved properties
+404                 /404                Custom error page
+
+
+2.2 ADMIN PANEL (URL prefix: /admin)
+--------------------------------------
+Screen              Description
+---------------------------------------------------------------------------
+Login               Secure username/password login with CSRF protection
+Dashboard           Stats overview, recent inquiries list
+Properties          Full CRUD with quick publish/feature toggles (AJAX)
+Media Manager       Drag-to-reorder, set cover, multi-upload, delete images
+Agents              Full CRUD with photo upload (auto-cropped square)
+Inquiries           View, filter (all/unread/property/general), mark read,
+                    delete
+Subscribers         View list, export CSV
+Exchange Rates      Manual override + live fetch from open.er-api.com
+
+
+2.3 POWER FEATURES
+-------------------
+Feature             Description
+---------------------------------------------------------------------------
+Currency Toggle     Switch between ₦ / $ / £ instantly. Rates pulled from
+                    /api/rates endpoint, cached in localStorage 24h.
+                    Fallback to hardcoded defaults if API unavailable.
+Shortlist           Heart-save properties to localStorage. View shortlist
+                    page, bulk-send to WhatsApp agent.
+Instant Valuation   Admin-seeded DB data used to compute low/avg/high
+                    price estimate. Returns JSON, rendered client-side with
+                    currency conversions and WhatsApp CTA.
+
+
+2.4 INTEGRATIONS
+-----------------
+Service             Purpose
+---------------------------------------------------------------------------
+WhatsApp            Agent cards, shortlist bulk-send, valuation result CTA,
+                    floating chat bubble (global)
+Leaflet.js          Per-property map pin, contact page office map
+Cloudinary          Image upload storage (production)
+open.er-api.com     Live exchange rate fetch (free, no API key)
+Neon (PostgreSQL)   Production database
+Newsletter          AJAX subscribe, CSV export in admin
+
+
+────────────────────────────────────────────────────────────────────────────────
+3. NON-FUNCTIONAL REQUIREMENTS
+────────────────────────────────────────────────────────────────────────────────
+
+- No Node.js / no build step — pure HTML5 / CSS3 / ES6+ vanilla
+- All CDN libraries: GSAP 3, Alpine.js, Splide.js, Leaflet.js, SortableJS,
+  Font Awesome 6
+- SEO: sitemap.xml, robots.txt, Open Graph meta tags on every page
+- Mobile-first responsive: breakpoints at 1024px (tablet) and 640px (mobile)
+- Accessibility: semantic HTML, aria-labels, alt text on all images
+- Security: Flask-WTF CSRF on all forms, Werkzeug password hashing,
+  login_required on all admin routes
+- Performance: Pillow image resizing on upload (1200×900 max, JPEG Q85),
+  Intersection Observer for scroll animations
+
+
+────────────────────────────────────────────────────────────────────────────────
+4. TECHNICAL ARCHITECTURE
+────────────────────────────────────────────────────────────────────────────────
+
+4.1 DIRECTORY STRUCTURE
+------------------------
+KMOP2/
+├── api/
+│   └── index.py              Vercel entry point
+├── app/
+│   ├── __init__.py           App factory, extensions, CLI commands
+│   ├── config.py             Dev/Prod config classes
+│   ├── models.py             SQLAlchemy models
+│   ├── main/                 Public blueprint (routes, forms)
+│   ├── admin/                Admin blueprint (CRUD, media manager)
+│   ├── auth/                 Login / logout
+│   └── static/               CSS, JS, images, uploads
+├── templates/
+│   └── admin/                Admin dashboard templates
+├── instance/                 SQLite database (dev only, gitignored)
+├── migrations/               Flask-Migrate migration scripts
+├── vercel.json               Vercel deployment config
+├── requirements.txt
+├── run.py
+├── .env                      Local environment variables (gitignored)
+└── .gitignore
+
+
+4.2 DATABASE MODELS
+--------------------
+Model                   Fields (key ones)
+---------------------------------------------------------------------------
+User                    id, username, email, password_hash, created_at
+Agent                   id, name, title, bio, phone, whatsapp, email,
+                        photo, is_active
+Property                id, ref_code (KMP-XXXX), title, slug, description,
+                        property_type, listing_type, price, price_period,
+                        city, state, address, lat, lng, bedrooms, bathrooms,
+                        toilets, parking_spaces, area_sqm, is_featured,
+                        is_published, views, agent_id, created_at
+PropertyImage           id, property_id, filename, is_cover, sort_order
+PropertyAmenity         id, property_id, name
+Inquiry                 id, name, email, phone, message, inquiry_type,
+                        property_id, is_read, created_at
+NewsletterSubscriber    id, email, created_at
+ExchangeRate            id, currency (USD/GBP), rate, updated_at
+
+
+4.3 API ENDPOINTS (AJAX / Public)
+-----------------------------------
+Method  URL                                     Description
+------------------------------------------------------------------------
+POST    /valuation                              Price estimate (CSRF exempt)
+GET     /api/rates                              Live exchange rates JSON
+GET     /api/properties/batch?ids=1,2,3         Batch property fetch for
+                                                shortlist page
+POST    /properties/<slug>/inquire              Property inquiry submit
+POST    /newsletter/subscribe                   Newsletter signup
+
+
+4.4 ENVIRONMENT VARIABLES
+---------------------------
+Variable            Description
+---------------------------------------------------------------------------
+SECRET_KEY          Flask session secret (64-char hex recommended)
+DATABASE_URL        PostgreSQL connection string (Neon/Supabase)
+CLOUDINARY_URL      Cloudinary API env variable (cloudinary://key:secret@name)
+WHATSAPP_NUMBER     Business WhatsApp number (no + or spaces)
+FLASK_ENV           development | production
+UPLOAD_FOLDER       Local upload path (dev only)
+MAX_CONTENT_LENGTH  Max upload size in bytes (default: 16777216 = 16MB)
+
+
+────────────────────────────────────────────────────────────────────────────────
+5. DESIGN SYSTEM
+────────────────────────────────────────────────────────────────────────────────
+
+Color Palette
+  --color-gold:         #C9A84C   (primary brand, CTAs, accents)
+  --color-gold-light:   #E8C96A
+  --color-black:        #0E0D0B   (backgrounds, hero)
+  --color-charcoal:     #1C1A17
+  --color-cream:        #F8F5F0   (light section backgrounds)
+  --color-white:        #FFFFFF
+  --color-text:         #2A2824
+  --color-text-muted:   #6B6660
+
+Typography
+  Headings:   Cormorant Garamond (serif) — editorial luxury feel
+  Body:       DM Sans (sans-serif) — clean, modern readability
+  Mono:       DM Mono — used for reference codes, data
+
+Spacing / Layout
+  Max container width: 1280px
+  Navbar height: 72px (scrolled: 60px)
+  Admin sidebar width: 240px (fixed)
+  Admin topbar height: 60px (sticky)
+
+
+────────────────────────────────────────────────────────────────────────────────
+6. DEPLOYMENT
+────────────────────────────────────────────────────────────────────────────────
+
+Platform:           Vercel (serverless Python)
+Database:           Neon (PostgreSQL, free tier)
+Image Storage:      Cloudinary (free tier, 25GB)
+Entry point:        api/index.py → create_app('production')
+Tables:             Auto-created on first cold start via db.create_all()
+
+Vercel Environment Variables to Set:
+  SECRET_KEY
+  DATABASE_URL        (from Neon dashboard)
+  CLOUDINARY_URL      (from Cloudinary dashboard)
+  WHATSAPP_NUMBER
+
+Seeding Production DB (run once locally):
+  DATABASE_URL="postgresql://..." FLASK_ENV=production flask seed-db
+
+
+────────────────────────────────────────────────────────────────────────────────
+7. ADMIN CREDENTIALS (DEFAULT — CHANGE AFTER FIRST LOGIN)
+────────────────────────────────────────────────────────────────────────────────
+
+  Username:   admin
+  Password:   Kingmac@2024
+  Login URL:  https://<your-domain>/admin/login
+
+
+────────────────────────────────────────────────────────────────────────────────
+8. PERSONALIZATION CHECKLIST (Items needed from brand owner)
+────────────────────────────────────────────────────────────────────────────────
+
+CONTACT DETAILS
+  [ ] Real office address
+  [ ] Real phone number
+  [ ] Real email address
+  [ ] Business WhatsApp number
+  [ ] Working hours
+  [ ] Office GPS coordinates (for contact page map)
+
+SOCIAL MEDIA
+  [ ] Facebook URL
+  [ ] Instagram URL
+  [ ] Twitter/X URL
+  [ ] LinkedIn URL
+
+BRAND COPY
+  [ ] Year founded / actual years in business
+  [ ] Real stats: properties listed, number of agents, satisfaction rating
+  [ ] Company story (About Us text)
+  [ ] Mission statement
+  [ ] Vision statement
+
+MEDIA
+  [ ] Hero background photo (high-res luxury property image)
+  [ ] Office/team photo (for About page)
+  [ ] Agent headshots (one per agent)
+
+CONTENT
+  [ ] Real property listings (title, price, photos, description, specs)
+  [ ] Real agent details (name, title, bio, phone, WhatsApp, email)
+
+
+────────────────────────────────────────────────────────────────────────────────
+END OF DOCUMENT
+================================================================================
